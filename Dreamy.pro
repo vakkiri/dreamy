@@ -16,12 +16,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    layouts/centerlayout.cpp \
+    layouts/leftlayout.cpp \
     layouts/mainlayout.cpp \
+    layouts/rightlayout.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
+    layouts/centerlayout.h \
+    layouts/leftlayout.h \
     layouts/mainlayout.h \
+    layouts/rightlayout.h \
     mainwindow.h
 
 FORMS += \
