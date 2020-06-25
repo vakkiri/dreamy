@@ -21,14 +21,25 @@ SOURCES += \
     layouts/mainlayout.cpp \
     layouts/rightlayout.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    widgets/assetswidget.cpp \
+    widgets/cursorwidget.cpp \
+    widgets/mainwidget.cpp \
+    widgets/settingswidget.cpp \
+    widgets/worldwidget.cpp
 
 HEADERS += \
     layouts/centerlayout.h \
     layouts/leftlayout.h \
     layouts/mainlayout.h \
     layouts/rightlayout.h \
-    mainwindow.h
+    mainwindow.h \
+    widgets/assetswidget.h \
+    widgets/const.h \
+    widgets/cursorwidget.h \
+    widgets/mainwidget.h \
+    widgets/settingswidget.h \
+    widgets/worldwidget.h
 
 FORMS += \
     mainwindow.ui

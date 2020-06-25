@@ -1,19 +1,22 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
-#include "layouts/mainlayout.h"
+#include "widgets/mainwidget.h"
+#include "widgets/cursorwidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    layout = new MainLayout();
+    main_widget = new MainWidget();
+
+    setCentralWidget(main_widget);
+    addToolBar("Toolbar");
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete layout;
+    delete main_widget;
 }
 

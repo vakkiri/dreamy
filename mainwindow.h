@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 
-class MainLayout;
+class MainWidget;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -19,6 +19,6 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    MainLayout *layout;
+    MainWidget *main_widget;
 };
 #endif // MAINWINDOW_H
