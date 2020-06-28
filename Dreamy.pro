@@ -22,6 +22,7 @@ SOURCES += \
     layouts/rightlayout.cpp \
     main.cpp \
     mainwindow.cpp \
+    util/assetcontainer.cpp \
     widgets/assetswidget.cpp \
     widgets/cursorwidget.cpp \
     widgets/mainwidget.cpp \
@@ -34,6 +35,7 @@ HEADERS += \
     layouts/mainlayout.h \
     layouts/rightlayout.h \
     mainwindow.h \
+    util/assetcontainer.h \
     widgets/assetswidget.h \
     widgets/const.h \
     widgets/cursorwidget.h \

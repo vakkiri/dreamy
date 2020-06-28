@@ -1,9 +1,11 @@
+#include "../util/assetcontainer.h"
 #include "assetswidget.h"
 #include "const.h"
 
 AssetsWidget::AssetsWidget()
 {
     setMaximumWidth(RIGHT_PANEL_WIDTH);
+    tiles = new QOpenGLTexture(editor_assets.get_image("tiles"));
 }
 
 void AssetsWidget::initializeGL() {

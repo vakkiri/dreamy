@@ -3,6 +3,7 @@
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
+#include <QOpenGLTexture>
 
 class AssetsWidget : public QOpenGLWidget
 {
@@ -13,6 +14,7 @@ public:
     void resizeGL(int w, int h) override;
 private:
     QOpenGLFunctions *ogl;
+    QOpenGLTexture *tiles;
 };
 
 #endif // ASSETSWIDGET_H
