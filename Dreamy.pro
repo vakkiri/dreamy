@@ -35,6 +35,7 @@ HEADERS += \
     layouts/mainlayout.h \
     layouts/rightlayout.h \
     mainwindow.h \
+    types/types.h \
     util/assetcontainer.h \
     widgets/assetswidget.h \
     widgets/const.h \

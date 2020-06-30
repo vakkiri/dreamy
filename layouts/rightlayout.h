@@ -5,6 +5,7 @@
 
 class CursorWidget;
 class AssetsWidget;
+class QComboBox;
 
 class RightLayout : public QVBoxLayout
 {
@@ -14,6 +15,7 @@ public:
 private:
     CursorWidget *cursor_widget;
     AssetsWidget *assets_widget;
+    QComboBox *asset_selector;
 };
 
 #endif // RIGHTLAYOUT_H

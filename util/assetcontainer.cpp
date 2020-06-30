@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <QDir>
 #include "assetcontainer.h"
 
 AssetContainer editor_assets;

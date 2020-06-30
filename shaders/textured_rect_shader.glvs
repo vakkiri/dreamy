@@ -1,0 +1,13 @@
+#version 330
+
+uniform mat4 pcMatrix;
+
+in vec2 vertexPos;
+in vec2 inTexCoord;
+out vec2 texCoord;
+
+void main() {
+	texCoord = inTexCoord;
+	gl_Position = pcMatrix * vec4( vertexPos.x, vertexPos.y, 0.0, 1.0 );
+}
+
