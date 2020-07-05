@@ -8,4 +8,11 @@ struct TileInfo {
     float t;
 };
 
+struct TextureData {
+    float s;
+    float t;
+    float x;
+    float y;
+};
+
 #endif // TYPES_H

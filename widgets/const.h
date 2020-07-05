@@ -4,4 +4,6 @@
 #define RIGHT_PANEL_WIDTH 256
 #define LEFT_PANEL_WIDTH 256
 
+#define TILE_WIDTH 16
+
 #endif // CONST_H
