@@ -73,13 +73,9 @@ void AssetsWidget::initializeGL()
 
 void AssetsWidget::initTiles()
 {
-    int texture_w;
-
-    texture_w = tile_texture->width();
-
-    for (int i = 0; i < texture_w; i += TILE_WIDTH)
+    for (int i = 0; i < tile_texture->width(); i += TILE_WIDTH)
     {
-        tiles.push_back(TileInfo{float(i) / texture_w, 0});
+        tiles.push_back(TileInfo{float(i) / tile_texture->width(), 0});
     }
 }
 
@@ -87,27 +83,36 @@ void AssetsWidget::initBuffers()
 {
     QVector<float> vertex_data;
     float tex_w = 16.f/tile_texture->width();
+    float tex_h = 16.f/tile_texture->height();
+    float x = 0;
+    float y = 0;
 
     for (unsigned int i = 0; i < tiles.size(); ++i) {
-        vertex_data.push_back(tex_w * i);
-        vertex_data.push_back(tex_w * i);
-        vertex_data.push_back(TILE_WIDTH * i);
-        vertex_data.push_back(TILE_WIDTH * i);
+        vertex_data.push_back(tiles[i].s);
+        vertex_data.push_back(tiles[i].t);
+        vertex_data.push_back(x);
+        vertex_data.push_back(y);
 
-        vertex_data.push_back(tex_w * (i+1));
-        vertex_data.push_back(tex_w);
-        vertex_data.push_back(TILE_WIDTH * (i+1));
-        vertex_data.push_back(TILE_WIDTH * i);
+        vertex_data.push_back(tiles[i].s + tex_w);
+        vertex_data.push_back(tiles[i].t);
+        vertex_data.push_back(x + TILE_WIDTH);
+        vertex_data.push_back(y);
 
-        vertex_data.push_back(tex_w * (i+1));
-        vertex_data.push_back(tex_w * (i+1));
-        vertex_data.push_back(TILE_WIDTH * (i+1));
-        vertex_data.push_back(TILE_WIDTH * (i+1));
+        vertex_data.push_back(tiles[i].s + tex_w);
+        vertex_data.push_back(tiles[i].t + tex_h);
+        vertex_data.push_back(x + TILE_WIDTH);
+        vertex_data.push_back(y + TILE_WIDTH);
 
-        vertex_data.push_back(tex_w * i);
-        vertex_data.push_back(tex_w * (i+1));
-        vertex_data.push_back(TILE_WIDTH * i);
-        vertex_data.push_back(TILE_WIDTH * (i+1));
+        vertex_data.push_back(tiles[i].s);
+        vertex_data.push_back(tiles[i].t + tex_h);
+        vertex_data.push_back(x);
+        vertex_data.push_back(y + TILE_WIDTH);
+
+        x += TILE_WIDTH;
+        if (x + TILE_WIDTH >= width()) {
+            x = 0;
+            y += TILE_WIDTH;
+        }
     }
 
     vbo.bind();

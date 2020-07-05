@@ -29,6 +29,6 @@ void AssetContainer::init_images()
 
 QImage AssetContainer::get_image(std::string name)
 {
-    return images[name].mirrored();
+    return images[name];
 }
 
