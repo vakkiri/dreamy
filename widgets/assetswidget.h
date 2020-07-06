@@ -44,7 +44,7 @@ private:
     QOpenGLShader *vertex_shader;
     QOpenGLShader *fragment_shader;
 
-    std::vector<TileInfo> tiles;
+    std::vector<TextureData> tiles;
 
     QMatrix4x4 matrix;
     float scale;

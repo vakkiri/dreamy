@@ -16,6 +16,8 @@ RightLayout::RightLayout()
     addWidget(cursor_widget);
     addWidget(asset_selector);
     addWidget(assets_widget);
+
+    cursor_widget->setAssetsWidget(assets_widget);
 }
 
 RightLayout::~RightLayout() {

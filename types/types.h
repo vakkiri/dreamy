@@ -6,13 +6,13 @@
 struct TileInfo {
     float s;
     float t;
+    float x;
+    float y;
 };
 
 struct TextureData {
     float s;
     float t;
-    float x;
-    float y;
 };
 
 #endif // TYPES_H

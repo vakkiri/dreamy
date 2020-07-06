@@ -11,12 +11,14 @@
 
 #define VERTEX_POS 0
 #define TEX_POS 1
+
 AssetsWidget::AssetsWidget()
 {
     setMaximumWidth(RIGHT_PANEL_WIDTH);
     minScale = 1.0;
     maxScale = 4.0;
     scale = 2.0;
+    selection = 0;
 }
 
 AssetsWidget::~AssetsWidget()
@@ -83,7 +85,7 @@ void AssetsWidget::initTiles()
     // on the fly. might remove.
     for (int i = 0; i < tile_texture->width(); i += TILE_WIDTH)
     {
-        tiles.push_back(TileInfo{float(i) / tile_texture->width(), 0});
+        tiles.push_back(TextureData{float(i) / tile_texture->width(), 0});
     }
 }
 
@@ -185,7 +187,6 @@ void AssetsWidget::wheelEvent(QWheelEvent *event) {
         if (numPixels.y() > 0 && scale < maxScale) {
             updateScale(scale + 1.f);
         } else if (numPixels.y() < 0 && scale > minScale) {
-            initBuffers();
             updateScale(scale - 1.f);
         }
     } else if (!numDegrees.isNull()) {
