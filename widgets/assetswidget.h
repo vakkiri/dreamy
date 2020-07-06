@@ -11,6 +11,8 @@
 class QOpenGLTexture;
 class QOpenGLShaderProgram;
 class QOpenGLShader;
+class QWheelEvent;
+class QMouseEvent;
 
 class AssetsWidget : public QOpenGLWidget
 {
@@ -21,9 +23,18 @@ public:
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int w, int h) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+
+    int getSelection();
+
 private:
     void initTiles();
     void initBuffers();
+    void updateScale(float newScale);
+    int posToTile(int x, int y);
+
+    int selection;
 
     QOpenGLFunctions_3_3_Core *ogl;
     QOpenGLTexture *tile_texture;
@@ -36,6 +47,9 @@ private:
     std::vector<TileInfo> tiles;
 
     QMatrix4x4 matrix;
+    float scale;
+    float minScale;
+    float maxScale;
 
     void checkError(std::string action);
 };

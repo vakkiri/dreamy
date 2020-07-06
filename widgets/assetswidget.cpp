@@ -1,6 +1,7 @@
 #include <QOpenGLTexture>
 #include <QOpenGLShader>
 #include <QVector>
+#include <QWheelEvent>
 
 #include <iostream>
 
@@ -13,6 +14,9 @@
 AssetsWidget::AssetsWidget()
 {
     setMaximumWidth(RIGHT_PANEL_WIDTH);
+    minScale = 1.0;
+    maxScale = 4.0;
+    scale = 2.0;
 }
 
 AssetsWidget::~AssetsWidget()
@@ -26,7 +30,7 @@ void AssetsWidget::initializeGL()
 {
     ogl = QOpenGLContext::currentContext()->versionFunctions<QOpenGLFunctions_3_3_Core>();
     ogl->initializeOpenGLFunctions();
-    ogl->glClearColor(0.f/255.f, 200.f/255.f, 100.f/255.f, 1.f);
+    ogl->glClearColor(220.f/255.f, 221.f/255.f, 222.f/255.f, 1.f);
     ogl->glViewport(0.f, 0.f, width(), height());
     ogl->glEnable(GL_BLEND);
     ogl->glDisable(GL_DEPTH_TEST);
@@ -57,10 +61,12 @@ void AssetsWidget::initializeGL()
     program->bind();
     matrix.setToIdentity();
     matrix.ortho(0, this->width(), this->height(), 0, 1.0, -1.0);
+    matrix.scale(scale);
     program->setUniformValue("pcMatrix", matrix);
     checkError("Setting matrix uniform");
 
     tile_texture = new QOpenGLTexture(editor_assets.get_image("tiles"));
+    tile_texture->setMagnificationFilter(QOpenGLTexture::Filter::Nearest);
     program->setUniformValue("texUnit", 0);
     checkError("Creating tile");
 
@@ -73,6 +79,8 @@ void AssetsWidget::initializeGL()
 
 void AssetsWidget::initTiles()
 {
+    // honestly this is really useless since the positions and texture coord are easily calculated
+    // on the fly. might remove.
     for (int i = 0; i < tile_texture->width(); i += TILE_WIDTH)
     {
         tiles.push_back(TileInfo{float(i) / tile_texture->width(), 0});
@@ -82,8 +90,8 @@ void AssetsWidget::initTiles()
 void AssetsWidget::initBuffers()
 {
     QVector<float> vertex_data;
-    float tex_w = 16.f/tile_texture->width();
-    float tex_h = 16.f/tile_texture->height();
+    float tex_w = float(TILE_WIDTH)/tile_texture->width();
+    float tex_h = float(TILE_WIDTH)/tile_texture->height();
     float x = 0;
     float y = 0;
 
@@ -109,7 +117,7 @@ void AssetsWidget::initBuffers()
         vertex_data.push_back(y + TILE_WIDTH);
 
         x += TILE_WIDTH;
-        if (x + TILE_WIDTH >= width()) {
+        if (x + TILE_WIDTH > width() / scale) {
             x = 0;
             y += TILE_WIDTH;
         }
@@ -132,6 +140,7 @@ void AssetsWidget::resizeGL(int w, int h)
     initBuffers();
     matrix.setToIdentity();
     matrix.ortho(0, w, h, 0, 1.0, -1.0);
+    matrix.scale(scale);
     program->setUniformValue("pcMatrix", matrix);
     checkError("Setting matrix uniform");
 }
@@ -154,3 +163,57 @@ void AssetsWidget::checkError(std::string action)
         std::cout << "Context: " << action << std::endl;
     }
 }
+
+void AssetsWidget::updateScale(float newScale) {
+    scale = newScale;
+
+    initBuffers();
+    matrix.setToIdentity();
+    matrix.ortho(0, width(), height(), 0, 1.0, -1.0);
+    matrix.scale(scale);
+    program->bind();
+    program->setUniformValue("pcMatrix", matrix);
+    checkError("Setting matrix uniform");
+    update();
+}
+
+void AssetsWidget::wheelEvent(QWheelEvent *event) {
+    QPoint numPixels = event->pixelDelta();
+    QPoint numDegrees = event->angleDelta() / 8;
+
+    if (!numPixels.isNull()) {
+        if (numPixels.y() > 0 && scale < maxScale) {
+            updateScale(scale + 1.f);
+        } else if (numPixels.y() < 0 && scale > minScale) {
+            initBuffers();
+            updateScale(scale - 1.f);
+        }
+    } else if (!numDegrees.isNull()) {
+        if (numDegrees.y() > 0 && scale < maxScale) {
+            updateScale(scale + 1.f);
+        } else if (numDegrees.y() < 0 && scale > minScale) {
+            updateScale(scale - 1.f);
+        }
+    }
+
+    event->accept();
+}
+
+void AssetsWidget::mouseReleaseEvent(QMouseEvent *event) {
+    selection = posToTile(event->x(), event->y());
+    if (event->button() == Qt::RightButton) {
+        ;// todo: on right click, we clear the palette and set to just this tile
+    }
+}
+
+int AssetsWidget::posToTile(int x, int y) {
+    int row_size = width() / (TILE_WIDTH * scale);
+    int row = y / (TILE_WIDTH * scale);
+    int col = x / (TILE_WIDTH * scale);
+    return (row * row_size) + col;
+}
+
+int AssetsWidget::getSelection() {
+    return selection;
+}
+
