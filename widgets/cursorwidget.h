@@ -22,6 +22,7 @@ public:
     ~CursorWidget();
 
     void setAssetsWidget(AssetsWidget *widget);
+    void setSnap(int snap);
 
 protected:
     void initializeGL() override;

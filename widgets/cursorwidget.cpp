@@ -183,8 +183,20 @@ void CursorWidget::mouseReleaseEvent(QMouseEvent *event) {
     float t = tile_info[assets_widget->getSelection()].t;
 
     if (event->button() == Qt::LeftButton) {
+        // add a tile
         tiles.push_back(TileInfo{s,t,x,y});
         updateSurface();
+    } else if (event->button() == Qt::RightButton) {
+        // delete the first matching tile
+        for (int i = tiles.size() - 1; i >= 0; --i) {
+            // i guess this method of deletion doesn't actually maintain order lol oops
+            if (tiles[i].x == x && tiles[i].y == y) {
+                tiles[i] = tiles.back();
+                tiles.pop_back();
+                updateSurface();
+                break;
+            }
+        }
     }
 }
 
@@ -213,3 +225,6 @@ void CursorWidget::wheelEvent(QWheelEvent *event) {
     event->accept();
 }
 
+void CursorWidget::setSnap(int snap) {
+    this->snap = snap;
+}
