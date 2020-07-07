@@ -12,7 +12,6 @@
 
 MainLayout::MainLayout()
 {
-    std::cout << "hello I am the main layout" << std::endl;
     center_layout = new QVBoxLayout();
     left_layout = new LeftLayout();
     right_layout = new QVBoxLayout();

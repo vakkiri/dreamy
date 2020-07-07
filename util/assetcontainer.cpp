@@ -14,7 +14,7 @@ void AssetContainer::init_images()
     std::cout << "Loading program images..." << std::endl;
     QString filename;
     std::string tileset_path = "assets/tiles.png";
-    std::string background_path = "assets/tiles.png";
+    std::string background_path = "assets/background.png";
 
     try {
         filename = QString(tileset_path.c_str());

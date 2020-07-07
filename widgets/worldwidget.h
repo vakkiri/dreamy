@@ -41,8 +41,8 @@ private:
 
     QOpenGLFunctions_3_3_Core *ogl;
     QOpenGLTexture *tile_texture;
+    QOpenGLTexture *bg_texture;
     QOpenGLBuffer vbo;
-    QOpenGLBuffer ibo;
     QOpenGLShaderProgram *program;
     QOpenGLShader *vertex_shader;
     QOpenGLShader *fragment_shader;

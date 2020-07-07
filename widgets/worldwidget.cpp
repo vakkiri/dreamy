@@ -73,6 +73,8 @@ void WorldWidget::initializeGL() {
 
     tile_texture = new QOpenGLTexture(editor_assets.get_image("tiles"));
     tile_texture->setMagnificationFilter(QOpenGLTexture::Filter::Nearest);
+    bg_texture = new QOpenGLTexture(editor_assets.get_image("background"));
+    bg_texture->setMagnificationFilter(QOpenGLTexture::Filter::Nearest);
     program->setUniformValue("texUnit", 0);
     checkError("Creating tile");
 
@@ -97,7 +99,28 @@ void WorldWidget::initBuffers()
     float tex_w = float(TILE_WIDTH)/tile_texture->width();
     float tex_h = float(TILE_WIDTH)/tile_texture->height();
 
+    // background
+    vertex_data.push_back(0);
+    vertex_data.push_back(0);
+    vertex_data.push_back(0);
+    vertex_data.push_back(0);
 
+    vertex_data.push_back(1);
+    vertex_data.push_back(0);
+    vertex_data.push_back(width());
+    vertex_data.push_back(0);
+
+    vertex_data.push_back(1);
+    vertex_data.push_back(1);
+    vertex_data.push_back(width());
+    vertex_data.push_back(height());
+
+    vertex_data.push_back(0);
+    vertex_data.push_back(1);
+    vertex_data.push_back(0);
+    vertex_data.push_back(height());
+
+    // tiles
     for (unsigned int i = 0; i < tiles.size(); ++i) {
         vertex_data.push_back(tiles[i].s);
         vertex_data.push_back(tiles[i].t);
@@ -146,8 +169,12 @@ void WorldWidget::resizeGL(int w, int h)
 void WorldWidget::paintGL()
 {
     ogl->glClear(GL_COLOR_BUFFER_BIT);
+    //background
+    bg_texture->bind();
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     tile_texture->bind();
-    for (unsigned int i = 0; i < tiles.size(); ++i) {
+    //tiles
+    for (unsigned int i = 1; i < tiles.size() + 1; ++i) {
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
     checkError("Drawing elements");
