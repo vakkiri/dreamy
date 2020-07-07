@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <cmath>
 #include <QOpenGLContext>
 #include <QOpenGLShader>
@@ -186,8 +187,17 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         // add all cursor tiles
         std::vector<TileInfo>& tiles_to_add = cursor_widget->getTiles();
+        // find  minimum x and y
+        // The point of this is a slight QOL impprovmenet since we can assume that we aren't interested in placing
+        // any "empty" spaces to the left or above our cursor.
+        float minx = 10000; // what is MAX_FLOAT lol
+        float miny = 10000;
         for(auto t : tiles_to_add) {
-            tiles.push_back(TileInfo{t.s,t.t,t.x + x,t.y + y});
+            minx = std::min(minx, t.x);
+            miny = std::min(miny, t.y);
+        }
+        for(auto t : tiles_to_add) {
+            tiles.push_back(TileInfo{t.s,t.t,t.x + x - minx,t.y + y - miny});
         }
         updateSurface();
     } else if (event->button() == Qt::RightButton) {
