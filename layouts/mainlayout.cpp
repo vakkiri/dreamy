@@ -1,9 +1,8 @@
 #include <iostream>
 #include <QSlider>
 #include <QComboBox>
+#include <QVBoxLayout>
 #include "mainlayout.h"
-#include "rightlayout.h"
-#include "centerlayout.h"
 #include "leftlayout.h"
 #include "../widgets/cursorwidget.h"
 #include "../widgets/assetswidget.h"
@@ -14,9 +13,9 @@
 MainLayout::MainLayout()
 {
     std::cout << "hello I am the main layout" << std::endl;
-    center_layout = new CenterLayout();
+    center_layout = new QVBoxLayout();
     left_layout = new LeftLayout();
-    right_layout = new RightLayout();
+    right_layout = new QVBoxLayout();
 
     // RIGHT LAYOUT
     cursor_widget = new CursorWidget();

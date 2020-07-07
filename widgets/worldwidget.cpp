@@ -179,11 +179,6 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
     x = int(x) - (int(x) % int(snap));
     y = int(y) - (int(y) % int(snap));
 
-    //float s = tile_info[assets_widget->getSelection()].s;
-    //float t = tile_info[assets_widget->getSelection()].t;
-    float s = 32.f/tile_texture->width();
-    float t = 0/tile_texture->height();
-
     if (event->button() == Qt::LeftButton) {
         // add all cursor tiles
         std::vector<TileInfo>& tiles_to_add = cursor_widget->getTiles();

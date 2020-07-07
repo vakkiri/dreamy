@@ -3,8 +3,7 @@
 
 #include <QGridLayout>
 
-class CenterLayout;
-class RightLayout;
+class QVBoxLayout;
 class LeftLayout;
 
 class CursorWidget;
@@ -22,9 +21,9 @@ public:
     MainLayout();
     virtual ~MainLayout();
 private:
-    CenterLayout *center_layout;
+    QVBoxLayout *center_layout;
     LeftLayout *left_layout;
-    RightLayout *right_layout;
+    QVBoxLayout *right_layout;
 
     // right stuff
     CursorWidget *cursor_widget;
