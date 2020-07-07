@@ -10,5 +10,6 @@ int main(int argc, char *argv[])
     w.setWindowTitle(QString("Dreamy"));
 
     w.show();
+    //w.setStyleSheet("QMainWindow {background: '#474444';}");
     return a.exec();
 }

@@ -48,7 +48,20 @@ MainLayout::MainLayout()
     // CENTER LAYOUT
     world_widget = new WorldWidget();
     world_widget->setCursorWidget(cursor_widget);
+    main_quantize_slider = new QSlider(Qt::Orientation::Horizontal);
+    main_quantize_slider->setTickInterval(1);
+    main_quantize_slider->setMaximum(32);
+    main_quantize_slider->setMinimum(1);
+    main_quantize_slider->setValue(16);
+    main_quantize_label = new QLabel();
+    main_quantize_label->setText(QString("Snap: ") + QString::number(quantize_slider->value()));
+    main_quantize_label->setFixedHeight(16);
+    center_layout->addWidget(main_quantize_label);
+    center_layout->addWidget(main_quantize_slider);
     center_layout->addWidget(world_widget);
+
+    connect(main_quantize_slider, &QSlider::valueChanged, world_widget, &WorldWidget::setSnap);
+    connect(main_quantize_slider, SIGNAL(valueChanged(int)), this, SLOT (updateMainQuantizeLabel(int)));
 
     addLayout(center_layout, 1, 1);
     addLayout(left_layout, 1, 0);
@@ -73,3 +86,8 @@ MainLayout::~MainLayout() {
 void MainLayout::updateQuantizeLabel(int value) {
     quantize_label->setText(QString("Snap: ") + QString::number(value));
 }
+
+void MainLayout::updateMainQuantizeLabel(int value) {
+    main_quantize_label->setText(QString("Snap: ") + QString::number(value));
+}
+

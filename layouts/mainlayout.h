@@ -34,13 +34,16 @@ private:
     QSlider *quantize_slider;
     QLabel *quantize_label;
 
+    QSlider *main_quantize_slider;
+    QLabel *main_quantize_label;
+
     // center stuff
     WorldWidget *world_widget;
 
 
 public slots:
     void updateQuantizeLabel(int value);
-
+    void updateMainQuantizeLabel(int value);
 };
 
 #endif // MAINLAYOUT_H
