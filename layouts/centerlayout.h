@@ -11,7 +11,6 @@ public:
     CenterLayout();
     virtual ~CenterLayout();
 private:
-    WorldWidget *world_widget;
 };
 
 #endif // CENTERLAYOUT_H

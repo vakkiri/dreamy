@@ -8,6 +8,7 @@
 #include "assetswidget.h"
 #include "const.h"
 #include "../util/assetcontainer.h"
+#include "../util/utils.h"
 
 #define VERTEX_POS 0
 #define TEX_POS 1
@@ -190,7 +191,7 @@ void CursorWidget::mouseReleaseEvent(QMouseEvent *event) {
         // delete the first matching tile
         for (int i = tiles.size() - 1; i >= 0; --i) {
             // i guess this method of deletion doesn't actually maintain order lol oops
-            if (tiles[i].x == x && tiles[i].y == y) {
+            if (clickInTile(event->x() / scale, event->y() / scale, tiles[i].x, tiles[i].y)) {
                 tiles[i] = tiles.back();
                 tiles.pop_back();
                 updateSurface();
@@ -227,4 +228,17 @@ void CursorWidget::wheelEvent(QWheelEvent *event) {
 
 void CursorWidget::setSnap(int snap) {
     this->snap = snap;
+}
+
+std::vector<TileInfo>& CursorWidget::getTiles() {
+    return tiles;
+}
+
+void CursorWidget::resetCursor(int tileIndex) {
+    float s = tile_info[tileIndex].s;
+    float t = tile_info[tileIndex].t;
+
+    tiles.clear();
+    tiles.push_back(TileInfo{s, t, 0, 0});
+    updateSurface();
 }

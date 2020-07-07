@@ -7,6 +7,7 @@
 
 #include "../util/assetcontainer.h"
 #include "assetswidget.h"
+#include "cursorwidget.h"
 #include "const.h"
 
 #define VERTEX_POS 0
@@ -19,6 +20,7 @@ AssetsWidget::AssetsWidget()
     maxScale = 4.0;
     scale = 2.0;
     selection = 0;
+    cursor_widget = nullptr;
 }
 
 AssetsWidget::~AssetsWidget()
@@ -203,7 +205,7 @@ void AssetsWidget::wheelEvent(QWheelEvent *event) {
 void AssetsWidget::mouseReleaseEvent(QMouseEvent *event) {
     selection = posToTile(event->x(), event->y());
     if (event->button() == Qt::RightButton) {
-        ;// todo: on right click, we clear the palette and set to just this tile
+        cursor_widget->resetCursor(selection);
     }
 }
 
@@ -216,5 +218,9 @@ int AssetsWidget::posToTile(int x, int y) {
 
 int AssetsWidget::getSelection() {
     return selection;
+}
+
+void AssetsWidget::setCursorWidget(CursorWidget *widget) {
+    cursor_widget = widget;
 }
 

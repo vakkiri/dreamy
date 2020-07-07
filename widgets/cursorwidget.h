@@ -23,6 +23,9 @@ public:
 
     void setAssetsWidget(AssetsWidget *widget);
     void setSnap(int snap);
+    std::vector<TileInfo>& getTiles();
+    void resetCursor(int tileIndex);
+
 
 protected:
     void initializeGL() override;

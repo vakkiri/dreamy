@@ -13,6 +13,7 @@ class QOpenGLShaderProgram;
 class QOpenGLShader;
 class QWheelEvent;
 class QMouseEvent;
+class CursorWidget;
 
 class AssetsWidget : public QOpenGLWidget
 {
@@ -27,6 +28,7 @@ public:
     void mouseReleaseEvent(QMouseEvent *event) override;
 
     int getSelection();
+    void setCursorWidget(CursorWidget *widget);
 
 private:
     void initTiles();
@@ -35,6 +37,8 @@ private:
     int posToTile(int x, int y);
 
     int selection;
+
+    CursorWidget *cursor_widget;
 
     QOpenGLFunctions_3_3_Core *ogl;
     QOpenGLTexture *tile_texture;
