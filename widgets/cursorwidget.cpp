@@ -17,6 +17,7 @@ CursorWidget::CursorWidget()
 {
     setMaximumWidth(RIGHT_PANEL_WIDTH);
     setMaximumHeight(RIGHT_PANEL_WIDTH);
+    setMouseTracking(true);
     assets_widget = nullptr;
     scale = 4;
     minScale = 1;
@@ -98,7 +99,29 @@ void CursorWidget::initBuffers()
     float tex_w = float(TILE_WIDTH)/tile_texture->width();
     float tex_h = float(TILE_WIDTH)/tile_texture->height();
 
+    /* add the preview */
+    // background
+    vertex_data.push_back(preview.s);
+    vertex_data.push_back(preview.t);
+    vertex_data.push_back(preview.x);
+    vertex_data.push_back(preview.y);
 
+    vertex_data.push_back(preview.s + tex_w);
+    vertex_data.push_back(preview.t);
+    vertex_data.push_back(preview.x + TILE_WIDTH);
+    vertex_data.push_back(preview.y);
+
+    vertex_data.push_back(preview.s + tex_w);
+    vertex_data.push_back(preview.t + tex_h);
+    vertex_data.push_back(preview.x + TILE_WIDTH);
+    vertex_data.push_back(preview.y + TILE_WIDTH);
+
+    vertex_data.push_back(preview.s);
+    vertex_data.push_back(preview.t + tex_h);
+    vertex_data.push_back(preview.x);
+    vertex_data.push_back(preview.y + TILE_WIDTH);
+
+    /* add the actual tiles */
     for (unsigned int i = 0; i < tiles.size(); ++i) {
         vertex_data.push_back(tiles[i].s);
         vertex_data.push_back(tiles[i].t);
@@ -148,7 +171,12 @@ void CursorWidget::paintGL()
 {
     ogl->glClear(GL_COLOR_BUFFER_BIT);
     tile_texture->bind();
-    for (unsigned int i = 0; i < tiles.size(); ++i) {
+
+    // draw the preview
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    // draw the cursor tiles
+    for (unsigned int i = 1; i < tiles.size() + 1; ++i) {
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
     checkError("Drawing elements");
@@ -223,6 +251,21 @@ void CursorWidget::wheelEvent(QWheelEvent *event) {
         }
     }
 
+    event->accept();
+}
+
+void CursorWidget::mouseMoveEvent(QMouseEvent *event) {
+    float x = event->x() / scale;
+    float y = event->y() / scale;
+    x = int(x) - (int(x) % int(snap));
+    y = int(y) - (int(y) % int(snap));
+
+    preview.x = x;
+    preview.y = y;
+    preview.s = tile_info[assets_widget->getSelection()].s;
+    preview.t = tile_info[assets_widget->getSelection()].t;
+
+    updateSurface();
     event->accept();
 }
 

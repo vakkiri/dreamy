@@ -21,6 +21,7 @@ WorldWidget::WorldWidget()
     minScale = 1;
     maxScale = 4;
     snap = 16;
+    setMouseTracking(true);
 }
 
 WorldWidget::~WorldWidget() {
@@ -258,6 +259,10 @@ void WorldWidget::wheelEvent(QWheelEvent *event) {
         }
     }
 
+    event->accept();
+}
+
+void WorldWidget::mouseMoveEvent(QMouseEvent *event) {
     event->accept();
 }
 
