@@ -8,6 +8,7 @@ struct TileInfo {
     float t;
     float x;
     float y;
+    bool solid;
 };
 
 struct TextureData {

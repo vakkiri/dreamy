@@ -1,9 +1,14 @@
 #version 330
 uniform sampler2D texUnit;
+uniform bool solid;
 
 in vec2 texCoord;
 
+out vec4 gl_FragColor;
+
 void main() {
         gl_FragColor = texture( texUnit, texCoord );
+	if (solid)
+		gl_FragColor.b = 1.f;
 }
 

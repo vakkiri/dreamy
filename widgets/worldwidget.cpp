@@ -25,6 +25,11 @@ WorldWidget::WorldWidget()
     previewy = 0;
     tx = 0;
     ty = 0;
+    middle_click = false;
+    last_real_mousex = 0;
+    last_real_mousey = 0;
+    add_solid = true;
+    view_solid = true;
     setMouseTracking(true);
 }
 
@@ -81,6 +86,7 @@ void WorldWidget::initializeGL() {
     bg_texture = new QOpenGLTexture(editor_assets.get_image("background"));
     bg_texture->setMagnificationFilter(QOpenGLTexture::Filter::Nearest);
     program->setUniformValue("texUnit", 0);
+    program->setUniformValue("solid", true);
     checkError("Creating tile");
 
     initTiles();
@@ -101,6 +107,7 @@ void WorldWidget::initTiles()
 void WorldWidget::initBuffers()
 {
     QVector<float> vertex_data;
+    QVector<float> vertex_data_solid;
     float tex_w = float(TILE_WIDTH)/tile_texture->width();
     float tex_h = float(TILE_WIDTH)/tile_texture->height();
     float bgx = (width() / (2 * scale)) - (bg_texture->width() / 2) - tx;
@@ -163,27 +170,37 @@ void WorldWidget::initBuffers()
     }
 
     // tiles
+    num_solid_tiles = 0;
     for (unsigned int i = 0; i < tiles.size(); ++i) {
-        vertex_data.push_back(tiles[i].s);
-        vertex_data.push_back(tiles[i].t);
-        vertex_data.push_back(tiles[i].x);
-        vertex_data.push_back(tiles[i].y);
+        QVector<float> *vectorptr;
+        if (tiles[i].solid) {
+            vectorptr = &vertex_data_solid;
+            num_solid_tiles += 1;
+        } else {
+            vectorptr = &vertex_data;
+        }
+        vectorptr->push_back(tiles[i].s);
+        vectorptr->push_back(tiles[i].t);
+        vectorptr->push_back(tiles[i].x);
+        vectorptr->push_back(tiles[i].y);
 
-        vertex_data.push_back(tiles[i].s + tex_w);
-        vertex_data.push_back(tiles[i].t);
-        vertex_data.push_back(tiles[i].x + TILE_WIDTH);
-        vertex_data.push_back(tiles[i].y);
+        vectorptr->push_back(tiles[i].s + tex_w);
+        vectorptr->push_back(tiles[i].t);
+        vectorptr->push_back(tiles[i].x + TILE_WIDTH);
+        vectorptr->push_back(tiles[i].y);
 
-        vertex_data.push_back(tiles[i].s + tex_w);
-        vertex_data.push_back(tiles[i].t + tex_h);
-        vertex_data.push_back(tiles[i].x + TILE_WIDTH);
-        vertex_data.push_back(tiles[i].y + TILE_WIDTH);
+        vectorptr->push_back(tiles[i].s + tex_w);
+        vectorptr->push_back(tiles[i].t + tex_h);
+        vectorptr->push_back(tiles[i].x + TILE_WIDTH);
+        vectorptr->push_back(tiles[i].y + TILE_WIDTH);
 
-        vertex_data.push_back(tiles[i].s);
-        vertex_data.push_back(tiles[i].t + tex_h);
-        vertex_data.push_back(tiles[i].x);
-        vertex_data.push_back(tiles[i].y + TILE_WIDTH);
+        vectorptr->push_back(tiles[i].s);
+        vectorptr->push_back(tiles[i].t + tex_h);
+        vectorptr->push_back(tiles[i].x);
+        vectorptr->push_back(tiles[i].y + TILE_WIDTH);
     }
+
+    vertex_data.append(vertex_data_solid);
 
     vbo.bind();
     vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
@@ -213,10 +230,24 @@ void WorldWidget::paintGL()
     ogl->glClear(GL_COLOR_BUFFER_BIT);
     //background
     bg_texture->bind();
+    // don't draw the background as "solid"
+    program->setUniformValue("solid", false);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    tile_texture->bind();
+
     //cursor + tiles
-    for (unsigned int i = 1; i < tiles.size() + num_cursor_tiles + 1; ++i) {
+    tile_texture->bind();
+    program->setUniformValue("solid", add_solid);
+    for (int i = 1; i < num_cursor_tiles + 1; ++i) {
+        glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
+    }
+
+    program->setUniformValue("solid", false);
+
+    for (unsigned int i = num_cursor_tiles + 1; i < tiles.size() + num_cursor_tiles + 1; ++i) {
+        // toggle solid visibility on for the solid tiles, which are always placed at the end of the buffer
+        if (tiles.size() + num_cursor_tiles - i < num_solid_tiles && view_solid) {
+            program->setUniformValue("solid", true);
+        }
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
     checkError("Drawing elements");
@@ -243,6 +274,13 @@ void WorldWidget::updateSurface() {
     update();
 }
 
+void WorldWidget::mousePressEvent(QMouseEvent *event) {
+    if (event->button() == Qt::MiddleButton) {
+        middle_click = true;
+    }
+    event->accept();
+}
+
 void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
     float x = event->x() / scale;
     float y = event->y() / scale;
@@ -264,7 +302,7 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
             miny = std::min(miny, t.y);
         }
         for(auto t : tiles_to_add) {
-            tiles.push_back(TileInfo{t.s,t.t,t.x + x - minx,t.y + y - miny});
+            tiles.push_back(TileInfo{t.s,t.t,t.x + x - minx,t.y + y - miny, add_solid});
         }
         updateSurface();
     } else if (event->button() == Qt::RightButton) {
@@ -278,6 +316,8 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
                 break;
             }
         }
+    } else if (event->button() == Qt::MiddleButton) {
+        middle_click = false;
     }
 }
 
@@ -331,10 +371,13 @@ void WorldWidget::mouseMoveEvent(QMouseEvent *event) {
     previewx = x;
     previewy = y;
 
-    x = int(x) - (int(x) % int(snap));
-    y = int(y) - (int(y) % int(snap));
+    if (middle_click) {
+        tx += (event->x() - last_real_mousex) / scale;
+        ty += (event->y() - last_real_mousey) / scale;
+    }
 
-
+    last_real_mousex = event->x();
+    last_real_mousey = event->y();
 
     updateSurface();
     event->accept();

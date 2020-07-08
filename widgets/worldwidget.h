@@ -27,6 +27,7 @@ protected:
     void paintGL() override;
     void resizeGL(int w, int h) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
 
@@ -65,8 +66,17 @@ private:
     float previewy;
     float mousex;
     float mousey;
+    float last_real_mousex;
+    float last_real_mousey;
+
+    bool middle_click;
+
+    bool add_solid;
+    bool view_solid;
 
     int num_cursor_tiles;
+    unsigned int num_solid_tiles;
+
     void checkError(std::string action);
 };
 
