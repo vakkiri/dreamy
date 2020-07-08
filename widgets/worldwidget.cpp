@@ -21,6 +21,10 @@ WorldWidget::WorldWidget()
     minScale = 1;
     maxScale = 4;
     snap = 16;
+    previewx = 0;
+    previewy = 0;
+    tx = 0;
+    ty = 0;
     setMouseTracking(true);
 }
 
@@ -103,23 +107,59 @@ void WorldWidget::initBuffers()
     // background
     vertex_data.push_back(0);
     vertex_data.push_back(0);
-    vertex_data.push_back(0);
-    vertex_data.push_back(0);
+    vertex_data.push_back(-tx);
+    vertex_data.push_back(-ty);
 
     vertex_data.push_back(1);
     vertex_data.push_back(0);
-    vertex_data.push_back(width());
-    vertex_data.push_back(0);
+    vertex_data.push_back(-tx + width());
+    vertex_data.push_back(-ty);
 
     vertex_data.push_back(1);
     vertex_data.push_back(1);
-    vertex_data.push_back(width());
-    vertex_data.push_back(height());
+    vertex_data.push_back(-tx + width());
+    vertex_data.push_back(-ty + height());
 
     vertex_data.push_back(0);
     vertex_data.push_back(1);
-    vertex_data.push_back(0);
-    vertex_data.push_back(height());
+    vertex_data.push_back(-tx);
+    vertex_data.push_back(-ty + height());
+
+    // cursor preview
+    std::vector<TileInfo>& tiles_to_add = cursor_widget->getTiles();
+    num_cursor_tiles = tiles_to_add.size();
+    float minx = 10000; // what is MAX_FLOAT lol
+    float miny = 10000;
+    for(auto t : tiles_to_add) {
+        minx = std::min(minx, t.x);
+        miny = std::min(miny, t.y);
+    }
+    for(auto t : tiles_to_add) {
+        float x = t.x + previewx - minx - tx;
+        float y = t.y + previewy - miny - ty;
+        x = int(x) - (int(x) % 16);
+        y = int(y) - (int(y) % 16);
+
+        vertex_data.push_back(t.s);
+        vertex_data.push_back(t.t);
+        vertex_data.push_back(x);
+        vertex_data.push_back(y);
+
+        vertex_data.push_back(t.s + tex_w);
+        vertex_data.push_back(t.t);
+        vertex_data.push_back(x + TILE_WIDTH);
+        vertex_data.push_back(y);
+
+        vertex_data.push_back(t.s + tex_w);
+        vertex_data.push_back(t.t + tex_h);
+        vertex_data.push_back(x + TILE_WIDTH);
+        vertex_data.push_back(y + TILE_WIDTH);
+
+        vertex_data.push_back(t.s);
+        vertex_data.push_back(t.t + tex_h);
+        vertex_data.push_back(x);
+        vertex_data.push_back(y + TILE_WIDTH);
+    }
 
     // tiles
     for (unsigned int i = 0; i < tiles.size(); ++i) {
@@ -174,8 +214,8 @@ void WorldWidget::paintGL()
     bg_texture->bind();
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     tile_texture->bind();
-    //tiles
-    for (unsigned int i = 1; i < tiles.size() + 1; ++i) {
+    //cursor + tiles
+    for (unsigned int i = 1; i < tiles.size() + num_cursor_tiles + 1; ++i) {
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
     checkError("Drawing elements");
@@ -195,6 +235,7 @@ void WorldWidget::updateSurface() {
     matrix.setToIdentity();
     matrix.ortho(0, width(), height(), 0, 1.0, -1.0);
     matrix.scale(scale);
+    matrix.translate(QVector3D(tx, ty, 0));
     program->bind();
     program->setUniformValue("pcMatrix", matrix);
     checkError("Setting matrix uniform");
@@ -204,6 +245,8 @@ void WorldWidget::updateSurface() {
 void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
     float x = event->x() / scale;
     float y = event->y() / scale;
+    x -= tx;
+    y -= ty;
     x = int(x) - (int(x) % int(snap));
     y = int(y) - (int(y) % int(snap));
 
@@ -227,7 +270,7 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
         // delete the first matching tile
         for (int i = tiles.size() - 1; i >= 0; --i) {
             // i guess this method of deletion doesn't actually maintain order lol oops
-            if (clickInTile(event->x() / scale, event->y() / scale, tiles[i].x, tiles[i].y)) {
+            if (clickInTile(event->x() / scale - tx, event->y() / scale - ty, tiles[i].x, tiles[i].y)) {
                 tiles[i] = tiles.back();
                 tiles.pop_back();
                 updateSurface();
@@ -237,25 +280,42 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
     }
 }
 
+void WorldWidget::scaleBy(float amt) {
+    float prex = mousex / scale;
+    float prey = mousey / scale;
+    float postx;
+    float posty;
+
+    scale += amt;
+
+    postx = mousex / scale;
+    posty = mousey / scale;
+
+    tx += (postx - prex);
+    ty += (posty - prey);
+
+    // make sure we never move to negative coordings (they don't play nicely with tilemap arrays...)
+    tx = std::min(0.f, tx);
+    ty = std::min(0.f, ty);
+
+    updateSurface();
+}
+
 void WorldWidget::wheelEvent(QWheelEvent *event) {
     QPoint numPixels = event->pixelDelta();
     QPoint numDegrees = event->angleDelta() / 8;
 
     if (!numPixels.isNull()) {
         if (numPixels.y() > 0 && scale < maxScale) {
-            scale += 1;
-            updateSurface();
+            scaleBy(1);
         } else if (numPixels.y() < 0 && scale > minScale) {
-            scale -= 1;
-            updateSurface();
+            scaleBy(-1);
         }
     } else if (!numDegrees.isNull()) {
         if (numDegrees.y() > 0 && scale < maxScale) {
-            scale += 1;
-            updateSurface();
+            scaleBy(1);
         } else if (numDegrees.y() < 0 && scale > minScale) {
-            scale -= 1;
-            updateSurface();
+            scaleBy(-1);
         }
     }
 
@@ -263,6 +323,19 @@ void WorldWidget::wheelEvent(QWheelEvent *event) {
 }
 
 void WorldWidget::mouseMoveEvent(QMouseEvent *event) {
+    float x = event->x() / scale;
+    float y = event->y() / scale;
+    mousex = x - tx * scale;
+    mousey = y - ty * scale;
+    previewx = x;
+    previewy = y;
+
+    x = int(x) - (int(x) % int(snap));
+    y = int(y) - (int(y) % int(snap));
+
+
+
+    updateSurface();
     event->accept();
 }
 

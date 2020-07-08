@@ -35,6 +35,7 @@ private:
     void initTiles();
     void initBuffers();
     void updateSurface();
+    void scaleBy(float amt);
 
     int snap;
 
@@ -53,9 +54,19 @@ private:
 
     QMatrix4x4 matrix;
     float scale;
+    float tx;
+    float ty;
+
+    float translation;
     float minScale;
     float maxScale;
 
+    float previewx;
+    float previewy;
+    float mousex;
+    float mousey;
+
+    int num_cursor_tiles;
     void checkError(std::string action);
 };
 
