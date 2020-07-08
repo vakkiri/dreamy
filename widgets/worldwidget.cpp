@@ -103,27 +103,28 @@ void WorldWidget::initBuffers()
     QVector<float> vertex_data;
     float tex_w = float(TILE_WIDTH)/tile_texture->width();
     float tex_h = float(TILE_WIDTH)/tile_texture->height();
-
+    float bgx = (width() / (2 * scale)) - (bg_texture->width() / 2) - tx;
+    float bgy = (height() / (2* scale)) - (bg_texture->height() / 2) - ty;
     // background
     vertex_data.push_back(0);
     vertex_data.push_back(0);
-    vertex_data.push_back(-tx);
-    vertex_data.push_back(-ty);
+    vertex_data.push_back(bgx);
+    vertex_data.push_back(bgy);
 
     vertex_data.push_back(1);
     vertex_data.push_back(0);
-    vertex_data.push_back(-tx + width());
-    vertex_data.push_back(-ty);
+    vertex_data.push_back(bgx + bg_texture->width());
+    vertex_data.push_back(bgy);
 
     vertex_data.push_back(1);
     vertex_data.push_back(1);
-    vertex_data.push_back(-tx + width());
-    vertex_data.push_back(-ty + height());
+    vertex_data.push_back(bgx + bg_texture->width());
+    vertex_data.push_back(bgy + bg_texture->height());
 
     vertex_data.push_back(0);
     vertex_data.push_back(1);
-    vertex_data.push_back(-tx);
-    vertex_data.push_back(-ty + height());
+    vertex_data.push_back(bgx);
+    vertex_data.push_back(bgy + bg_texture->height());
 
     // cursor preview
     std::vector<TileInfo>& tiles_to_add = cursor_widget->getTiles();
