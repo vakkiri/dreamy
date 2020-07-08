@@ -291,8 +291,8 @@ void WorldWidget::scaleBy(float amt) {
     postx = mousex / scale;
     posty = mousey / scale;
 
-    tx += (postx - prex);
-    ty += (posty - prey);
+    tx += (postx - prex) / (scale-amt);
+    ty += (posty - prey) / (scale-amt);
 
     // make sure we never move to negative coordings (they don't play nicely with tilemap arrays...)
     tx = std::min(0.f, tx);
