@@ -4,6 +4,7 @@
 #include <QGridLayout>
 
 class QVBoxLayout;
+class QHBoxLayout;
 class LeftLayout;
 
 class QCheckBox;
@@ -34,18 +35,20 @@ private:
     QSlider *quantize_slider;
     QLabel *quantize_label;
 
-    QSlider *main_quantize_slider;
-    QLabel *main_quantize_label;
-
     // center stuff
     WorldWidget *world_widget;
     QCheckBox *add_solid_box;
     QCheckBox *view_solid_box;
-
+    QSlider *main_quantize_slider;
+    QLabel *main_quantize_label;
+    QSlider *layer_slider;
+    QLabel *layer_label;
+    QHBoxLayout *center_slider_layout;
 
 public slots:
     void updateQuantizeLabel(int value);
     void updateMainQuantizeLabel(int value);
+    void updateLayerLabel(int value);
 };
 
 #endif // MAINLAYOUT_H

@@ -30,6 +30,7 @@ WorldWidget::WorldWidget()
     last_real_mousey = 0;
     add_solid = true;
     view_solid = true;
+    current_layer = 0;
     setMouseTracking(true);
 }
 
@@ -112,7 +113,7 @@ void WorldWidget::initBuffers()
     float tex_h = float(TILE_WIDTH)/tile_texture->height();
     float bgx = (width() / (2 * scale)) - (bg_texture->width() / 2) - tx;
     float bgy = (height() / (2* scale)) - (bg_texture->height() / 2) - ty;
-    std::cout << tx << std::endl;
+
     // background
     vertex_data.push_back(tx/bg_texture->width());
     vertex_data.push_back(0);
@@ -307,7 +308,7 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
             miny = std::min(miny, t.y);
         }
         for(auto t : tiles_to_add) {
-            tiles.push_back(TileInfo{t.s,t.t,t.x + x - minx,t.y + y - miny, add_solid});
+            tiles.push_back(TileInfo{t.s,t.t,t.x + x - minx,t.y + y - miny, add_solid, current_layer});
         }
         updateSurface();
     } else if (event->button() == Qt::RightButton) {
@@ -396,4 +397,8 @@ void WorldWidget::updateAddSolid(int state) {
 void WorldWidget::updateViewSolid(int state) {
     view_solid = state == Qt::CheckState::Checked;
     updateSurface();
+}
+
+void WorldWidget::updateCurrentLayer(int layer) {
+    current_layer = layer;
 }

@@ -9,6 +9,7 @@ struct TileInfo {
     float x;
     float y;
     bool solid;
+    int layer;
 };
 
 struct TextureData {

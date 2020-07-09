@@ -78,10 +78,13 @@ private:
     int num_cursor_tiles;
     unsigned int num_solid_tiles;
 
+    int current_layer;
+
     void checkError(std::string action);
 public slots:
     void updateAddSolid(int state);
     void updateViewSolid(int state);
+    void updateCurrentLayer(int layer);
 };
 
 #endif // WORLDWIDGET_H
