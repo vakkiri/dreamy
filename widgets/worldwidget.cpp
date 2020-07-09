@@ -112,23 +112,24 @@ void WorldWidget::initBuffers()
     float tex_h = float(TILE_WIDTH)/tile_texture->height();
     float bgx = (width() / (2 * scale)) - (bg_texture->width() / 2) - tx;
     float bgy = (height() / (2* scale)) - (bg_texture->height() / 2) - ty;
+    std::cout << tx << std::endl;
     // background
-    vertex_data.push_back(0);
+    vertex_data.push_back(tx/bg_texture->width());
     vertex_data.push_back(0);
     vertex_data.push_back(bgx);
     vertex_data.push_back(bgy);
 
-    vertex_data.push_back(1);
+    vertex_data.push_back(1 + tx/bg_texture->width());
     vertex_data.push_back(0);
     vertex_data.push_back(bgx + bg_texture->width());
     vertex_data.push_back(bgy);
 
-    vertex_data.push_back(1);
+    vertex_data.push_back(1 + tx/bg_texture->width());
     vertex_data.push_back(1);
     vertex_data.push_back(bgx + bg_texture->width());
     vertex_data.push_back(bgy + bg_texture->height());
 
-    vertex_data.push_back(0);
+    vertex_data.push_back(tx/bg_texture->width());
     vertex_data.push_back(1);
     vertex_data.push_back(bgx);
     vertex_data.push_back(bgy + bg_texture->height());
@@ -263,6 +264,10 @@ void WorldWidget::checkError(std::string action)
 }
 
 void WorldWidget::updateSurface() {
+    // make sure we never move to negative coordings (they don't play nicely with tilemap arrays...)
+    tx = std::min(0.f, tx);
+    ty = std::min(0.f, ty);
+
     initBuffers();
     matrix.setToIdentity();
     matrix.ortho(0, width(), height(), 0, 1.0, -1.0);
@@ -335,10 +340,6 @@ void WorldWidget::scaleBy(float amt) {
     tx += (postx - prex) / (scale-amt);
     ty += (posty - prey) / (scale-amt);
 
-    // make sure we never move to negative coordings (they don't play nicely with tilemap arrays...)
-    tx = std::min(0.f, tx);
-    ty = std::min(0.f, ty);
-
     updateSurface();
 }
 
@@ -385,4 +386,14 @@ void WorldWidget::mouseMoveEvent(QMouseEvent *event) {
 
 void WorldWidget::setSnap(int snap) {
     this->snap = snap;
+}
+
+void WorldWidget::updateAddSolid(int state) {
+    add_solid = state == Qt::CheckState::Checked;
+    updateSurface();
+}
+
+void WorldWidget::updateViewSolid(int state) {
+    view_solid = state == Qt::CheckState::Checked;
+    updateSurface();
 }

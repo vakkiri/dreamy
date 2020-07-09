@@ -1,4 +1,4 @@
-#ifndef MAINLAYOUT_H
+#ifndef MAINLAYOUT_H;
 #define MAINLAYOUT_H
 
 #include <QGridLayout>
@@ -6,6 +6,7 @@
 class QVBoxLayout;
 class LeftLayout;
 
+class QCheckBox;
 class CursorWidget;
 class AssetsWidget;
 class QComboBox;
@@ -38,6 +39,8 @@ private:
 
     // center stuff
     WorldWidget *world_widget;
+    QCheckBox *add_solid_box;
+    QCheckBox *view_solid_box;
 
 
 public slots:

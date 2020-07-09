@@ -15,6 +15,7 @@ class QOpenGLShader;
 
 class WorldWidget : public QOpenGLWidget
 {
+    Q_OBJECT
 public:
     WorldWidget();
     ~WorldWidget();
@@ -78,6 +79,9 @@ private:
     unsigned int num_solid_tiles;
 
     void checkError(std::string action);
+public slots:
+    void updateAddSolid(int state);
+    void updateViewSolid(int state);
 };
 
 #endif // WORLDWIDGET_H

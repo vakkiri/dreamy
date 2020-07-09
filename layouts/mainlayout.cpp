@@ -1,5 +1,6 @@
 #include <iostream>
 #include <QSlider>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QVBoxLayout>
 #include "mainlayout.h"
@@ -54,13 +55,20 @@ MainLayout::MainLayout()
     main_quantize_label = new QLabel();
     main_quantize_label->setText(QString("Snap: ") + QString::number(quantize_slider->value()));
     main_quantize_label->setFixedHeight(16);
+    add_solid_box = new QCheckBox("Add &colliders", world_widget);
+    view_solid_box = new QCheckBox("&View colliders", world_widget);
+    add_solid_box->setChecked(true);
+    view_solid_box->setChecked(true);
     center_layout->addWidget(main_quantize_label);
     center_layout->addWidget(main_quantize_slider);
+    center_layout->addWidget(add_solid_box);
+    center_layout->addWidget(view_solid_box);
     center_layout->addWidget(world_widget);
 
     connect(main_quantize_slider, &QSlider::valueChanged, world_widget, &WorldWidget::setSnap);
     connect(main_quantize_slider, SIGNAL(valueChanged(int)), this, SLOT (updateMainQuantizeLabel(int)));
-
+    connect(add_solid_box, SIGNAL(stateChanged(int)), world_widget, SLOT(updateAddSolid(int)));
+    connect(view_solid_box, SIGNAL(stateChanged(int)), world_widget, SLOT(updateViewSolid(int)));
     addLayout(center_layout, 1, 1);
     addLayout(left_layout, 1, 0);
     addLayout(right_layout, 1, 2);
