@@ -2,6 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <string>
+
+class QMenu;
+class QAction;
 
 class MainWidget;
 
@@ -18,7 +22,23 @@ public:
     ~MainWindow();
 
 private:
+
     Ui::MainWindow *ui;
     MainWidget *main_widget;
+
+    QMenu *file_menu;
+
+    QAction *new_action;
+    QAction *save_action;
+    QAction *saveas_action;
+    QAction *open_action;
+
+    std::string cur_filename;
+    std::string cur_filepath;
+private slots:
+    void save();
+    void open();
+    void saveas();
+    void new_level();
 };
 #endif // MAINWINDOW_H

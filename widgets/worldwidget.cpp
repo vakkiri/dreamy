@@ -113,24 +113,25 @@ void WorldWidget::initBuffers()
     float tex_h = float(TILE_WIDTH)/tile_texture->height();
     float bgx = (width() / (2 * scale)) - (bg_texture->width() / 2) - tx;
     float bgy = (height() / (2* scale)) - (bg_texture->height() / 2) - ty;
+    float bg_ds = (-tx/bg_texture->width()) * 0.5;  // parallax bg scroll
 
     // background
-    vertex_data.push_back(tx/bg_texture->width());
+    vertex_data.push_back(bg_ds);
     vertex_data.push_back(0);
     vertex_data.push_back(bgx);
     vertex_data.push_back(bgy);
 
-    vertex_data.push_back(1 + tx/bg_texture->width());
+    vertex_data.push_back(1 + bg_ds);
     vertex_data.push_back(0);
     vertex_data.push_back(bgx + bg_texture->width());
     vertex_data.push_back(bgy);
 
-    vertex_data.push_back(1 + tx/bg_texture->width());
+    vertex_data.push_back(1 + bg_ds);
     vertex_data.push_back(1);
     vertex_data.push_back(bgx + bg_texture->width());
     vertex_data.push_back(bgy + bg_texture->height());
 
-    vertex_data.push_back(tx/bg_texture->width());
+    vertex_data.push_back(bg_ds);
     vertex_data.push_back(1);
     vertex_data.push_back(bgx);
     vertex_data.push_back(bgy + bg_texture->height());
