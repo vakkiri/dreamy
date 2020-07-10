@@ -148,8 +148,8 @@ void WorldWidget::initBuffers()
     for(auto t : tiles_to_add) {
         float x = t.x + previewx - minx - tx;
         float y = t.y + previewy - miny - ty;
-        x = int(x) - (int(x) % 16);
-        y = int(y) - (int(y) % 16);
+        x = int(x) - (int(x) % snap);
+        y = int(y) - (int(y) % snap);
 
         vertex_data.push_back(t.s);
         vertex_data.push_back(t.t);
