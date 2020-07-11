@@ -4,8 +4,10 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLWidget>
 #include <vector>
+#include <QVector>
 #include <QOpenGLBuffer>
 #include <QMatrix4x4>
+#include <unordered_map>
 #include "../types/types.h"
 
 class QOpenGLTexture;
@@ -17,6 +19,7 @@ class CursorWidget;
 
 class AssetsWidget : public QOpenGLWidget
 {
+    Q_OBJECT
 public:
     AssetsWidget();
     ~AssetsWidget();
@@ -33,15 +36,17 @@ public:
 private:
     void initTiles();
     void initBuffers();
+    void addTilesToBuffer(QVector<float>& buffer);
+    void addAssetsToBuffer(QVector<float>& buffer, std::string group_name);
     void updateScale(float newScale);
     int posToTile(int x, int y);
 
     int selection;
-
+    std::string selected_group;
     CursorWidget *cursor_widget;
 
     QOpenGLFunctions_3_3_Core *ogl;
-    QOpenGLTexture *tile_texture;
+    std::unordered_map<std::string, QOpenGLTexture*> textures;
     QOpenGLBuffer vbo;
     QOpenGLBuffer ibo;
     QOpenGLShaderProgram *program;
@@ -56,6 +61,9 @@ private:
     float maxScale;
 
     void checkError(std::string action);
+
+public slots:
+    void setGroup(int index);
 };
 
 #endif // ASSETSWIDGET_H

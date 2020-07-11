@@ -19,7 +19,16 @@ struct TextureData {
 };
 
 struct Asset {
+    float s;
+    float t;
+    float w;
+    float h;
+};
+
+struct AssetInstance {
     std::string image_name;
+    float x;
+    float y;
     float s;
     float t;
     float w;

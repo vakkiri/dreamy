@@ -24,6 +24,7 @@ MainLayout::MainLayout()
     assets_widget = new AssetsWidget();
     asset_selector = new QComboBox();
     asset_selector->addItem("Tiles");
+    asset_selector->addItem("Objects");
     quantize_slider = new QSlider(Qt::Orientation::Horizontal);
     quantize_slider->setTickInterval(1);
     quantize_slider->setMaximum(32);
@@ -45,6 +46,7 @@ MainLayout::MainLayout()
 
     connect(quantize_slider, &QSlider::valueChanged, cursor_widget, &CursorWidget::setSnap);
     connect(quantize_slider, SIGNAL(valueChanged(int)), this, SLOT (updateQuantizeLabel(int)));
+    connect(asset_selector, SIGNAL(currentIndexChanged(int)), assets_widget, SLOT (setGroup(int)));
 
     // CENTER LAYOUT
     world_widget = new WorldWidget();

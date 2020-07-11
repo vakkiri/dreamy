@@ -21,12 +21,15 @@ AssetsWidget::AssetsWidget()
     scale = 2.0;
     selection = 0;
     cursor_widget = nullptr;
+    selected_group = "tiles";
 }
 
 AssetsWidget::~AssetsWidget()
 {
     makeCurrent();
-    delete tile_texture;
+    for (auto tex : textures) {
+        delete tex.second;
+    }
     vbo.destroy();
 }
 
@@ -69,8 +72,12 @@ void AssetsWidget::initializeGL()
     program->setUniformValue("pcMatrix", matrix);
     checkError("Setting matrix uniform");
 
-    tile_texture = new QOpenGLTexture(editor_assets.get_image("tiles"));
-    tile_texture->setMagnificationFilter(QOpenGLTexture::Filter::Nearest);
+    for (auto asset : editor_assets.get_assets()) {
+        QOpenGLTexture* new_tex = new QOpenGLTexture(editor_assets.get_image(asset.first));
+        new_tex->setMagnificationFilter(QOpenGLTexture::Filter::Nearest);
+        textures[asset.first] = new_tex;
+    }
+
     program->setUniformValue("texUnit", 0);
     checkError("Creating tile");
 
@@ -85,46 +92,98 @@ void AssetsWidget::initTiles()
 {
     // honestly this is really useless since the positions and texture coord are easily calculated
     // on the fly. might remove.
+    QOpenGLTexture *tile_texture = textures["tiles"];
     for (int i = 0; i < tile_texture->width(); i += TILE_WIDTH)
     {
         tiles.push_back(TextureData{float(i) / tile_texture->width(), 0});
     }
 }
 
-void AssetsWidget::initBuffers()
-{
-    QVector<float> vertex_data;
+void AssetsWidget::addTilesToBuffer(QVector<float>& buffer) {
+    // Note this should *not* be a special case. Should refactor such that we can just
+    // draw tiles using the initAssetBuffer call.
+    QOpenGLTexture *tile_texture = textures["tiles"];
     float tex_w = float(TILE_WIDTH)/tile_texture->width();
     float tex_h = float(TILE_WIDTH)/tile_texture->height();
     float x = 0;
     float y = 0;
 
     for (unsigned int i = 0; i < tiles.size(); ++i) {
-        vertex_data.push_back(tiles[i].s);
-        vertex_data.push_back(tiles[i].t);
-        vertex_data.push_back(x);
-        vertex_data.push_back(y);
+        buffer.push_back(tiles[i].s);
+        buffer.push_back(tiles[i].t);
+        buffer.push_back(x);
+        buffer.push_back(y);
 
-        vertex_data.push_back(tiles[i].s + tex_w);
-        vertex_data.push_back(tiles[i].t);
-        vertex_data.push_back(x + TILE_WIDTH);
-        vertex_data.push_back(y);
+        buffer.push_back(tiles[i].s + tex_w);
+        buffer.push_back(tiles[i].t);
+        buffer.push_back(x + TILE_WIDTH);
+        buffer.push_back(y);
 
-        vertex_data.push_back(tiles[i].s + tex_w);
-        vertex_data.push_back(tiles[i].t + tex_h);
-        vertex_data.push_back(x + TILE_WIDTH);
-        vertex_data.push_back(y + TILE_WIDTH);
+        buffer.push_back(tiles[i].s + tex_w);
+        buffer.push_back(tiles[i].t + tex_h);
+        buffer.push_back(x + TILE_WIDTH);
+        buffer.push_back(y + TILE_WIDTH);
 
-        vertex_data.push_back(tiles[i].s);
-        vertex_data.push_back(tiles[i].t + tex_h);
-        vertex_data.push_back(x);
-        vertex_data.push_back(y + TILE_WIDTH);
+        buffer.push_back(tiles[i].s);
+        buffer.push_back(tiles[i].t + tex_h);
+        buffer.push_back(x);
+        buffer.push_back(y + TILE_WIDTH);
 
         x += TILE_WIDTH;
         if (x + TILE_WIDTH > width() / scale) {
             x = 0;
             y += TILE_WIDTH;
         }
+    }
+}
+
+void AssetsWidget::addAssetsToBuffer(QVector<float>& buffer, std::string group_name) {
+    std::vector<Asset> assets = editor_assets.get_assets(group_name);
+    float x = 0;
+    float y = 0;
+
+    QOpenGLTexture* tex = textures[group_name];
+
+    for (auto asset : assets) {
+        buffer.push_back(asset.s / tex->width());
+        buffer.push_back(asset.t / tex->height());
+        buffer.push_back(x);
+        buffer.push_back(y);
+
+        buffer.push_back((asset.s + asset.w) / tex->width());
+        buffer.push_back(asset.t / tex->height());
+        buffer.push_back(x + asset.w);
+        buffer.push_back(y);
+
+        buffer.push_back((asset.s + asset.w) / tex->width());
+        buffer.push_back((asset.t + asset.h) / tex->height());
+        buffer.push_back(x + asset.w);
+        buffer.push_back(y + asset.h);
+
+        buffer.push_back(asset.s / tex->width());
+        buffer.push_back((asset.t + asset.h) / tex->height());
+        buffer.push_back(x);
+        buffer.push_back(y + asset.h);
+
+        // FIXME: this can result in overlapping images. to fix this,
+        // we need to calculate the entire row at once and choose the max
+        // height as the row height.
+        x += asset.w;
+        if (x + asset.w > width() / scale) {
+            x = 0;
+            y += asset.h;
+        }
+    }
+}
+
+void AssetsWidget::initBuffers()
+{
+    QVector<float> vertex_data;
+
+    if (selected_group == "tiles") {
+        addTilesToBuffer(vertex_data);
+    } else {
+        addAssetsToBuffer(vertex_data, selected_group);
     }
 
     vbo.bind();
@@ -152,7 +211,8 @@ void AssetsWidget::resizeGL(int w, int h)
 void AssetsWidget::paintGL()
 {
     ogl->glClear(GL_COLOR_BUFFER_BIT);
-    tile_texture->bind();
+    QOpenGLTexture *texture = textures[selected_group];
+    texture->bind();
     for (unsigned int i = 0; i < tiles.size(); ++i) {
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
@@ -224,3 +284,21 @@ void AssetsWidget::setCursorWidget(CursorWidget *widget) {
     cursor_widget = widget;
 }
 
+void AssetsWidget::setGroup(int index) {
+    switch(index) {
+        case 0: {
+            selected_group = "tiles";
+            updateScale(scale);
+            break;
+        }
+        case 1: {
+            selected_group = "objects";
+            updateScale(scale);
+            break;
+        }
+        default: {
+            std::cout << "Unknown asset group: " << index << std::endl;
+            break;
+        }
+    }
+}
