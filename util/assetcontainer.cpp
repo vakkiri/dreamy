@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <utility>
 #include "assetcontainer.h"
 
 AssetContainer editor_assets;
@@ -15,25 +16,23 @@ void AssetContainer::init_images()
     QString filename;
     std::string tileset_path = "assets/tiles.png";
     std::string background_path = "assets/background.png";
+    std::string objects_path = "assets/objects.png";
 
-    try {
-        filename = QString(tileset_path.c_str());
-        images["tiles"] = QImage(filename);
-        if (images["tiles"].isNull()) {
-            throw std::runtime_error("Couldn't load tileset image.");
-        }
-    } catch (const std::exception& e) {
-        std::cout << e.what() << std::endl;
-    }
+    std::vector<std::pair<std::string, std::string>> assets_to_load;
+    assets_to_load.push_back(std::make_pair("tiles", tileset_path));
+    assets_to_load.push_back(std::make_pair("background", background_path));
+    assets_to_load.push_back(std::make_pair("object", objects_path));
 
-    try {
-        filename = QString(background_path.c_str());
-        images["background"] = QImage(filename);
-        if (images["background"].isNull()) {
-            throw std::runtime_error("Couldn't load background image.");
+    for (auto asset : assets_to_load) {
+        try {
+            filename = QString(asset.second.c_str());
+            images[asset.first] = QImage(filename);
+            if (images[asset.first].isNull()) {
+                throw std::runtime_error("Couldn't load image: " + asset.second);
+            }
+        } catch (const std::exception& e) {
+            std::cout << e.what() << std::endl;
         }
-    } catch (const std::exception& e) {
-        std::cout << e.what() << std::endl;
     }
 }
 
