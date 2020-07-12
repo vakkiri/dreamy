@@ -37,12 +37,15 @@ void AssetContainer::init_images()
         }
     }
 
+    // object types: 0 = passable tile, 1 = solid tile, 2.. = custom
     for (int i = 0; i < images["tiles"].width(); i += 16.f) {
-        assets["tiles"].push_back(Asset{"tiles", float(i), 0.f, 16.f, 16.f});
+        assets["tiles"].push_back(Asset{"tiles", float(i), 0.f, 16.f, 16.f, 0});
     }
 
-    assets["objects"].push_back(Asset{"objects", 0.f , 0.f, 32.f, 32.f});
-    assets["objects"].push_back(Asset{"objects", 32.f, 0.f, 32.f, 32.f});
+    // TODO: these should be specified in a config file, not hardcoded
+    // UR NOT ALLOWED TO ADD EVEN 1 MORE WITHOUT THAT REFACTOR
+    assets["objects"].push_back(Asset{"objects", 0.f , 0.f, 32.f, 32.f, 2});
+    assets["objects"].push_back(Asset{"objects", 32.f, 0.f, 32.f, 32.f, 3});
 
 }
 

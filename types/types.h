@@ -24,6 +24,7 @@ struct Asset {
     float t;
     float w;
     float h;
+    int type;
 };
 
 struct AssetInstance {
@@ -34,6 +35,7 @@ struct AssetInstance {
     float t;
     float w;
     float h;
+    int type;
 };
 
 #endif // TYPES_H

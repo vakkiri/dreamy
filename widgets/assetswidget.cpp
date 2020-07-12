@@ -21,7 +21,7 @@ AssetsWidget::AssetsWidget()
     minScale = 1.0;
     maxScale = 4.0;
     scale = 2.0;
-    selection = Asset{"tiles", 0, 0, 16.f, 16.f};
+    selection = Asset{"tiles", 0, 0, 16.f, 16.f, 0};
     cursor_widget = nullptr;
     selected_group = "tiles";
 }
@@ -232,6 +232,7 @@ void AssetsWidget::selectAsset(int x, int y) {
             selection.w = asset.w;
             selection.h = asset.h;
             selection.group = selected_group;
+            selection.type = asset.type;
             break;
         }
     }

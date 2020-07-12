@@ -170,16 +170,9 @@ void WorldWidget::initBuffers()
     // tiles
     num_solid_tiles = 0;
     for (unsigned int i = 0; i < assets.size(); ++i) {
-        QVector<float> *vectorptr;
+        QVector<float> *vectorptr = &vertex_data;   // this is tech debt from when there were multiple vectors and i don't feel like fixing it atm
         float ds = float(assets[i].w) / textures[assets[i].group]->width();
         float dt = float(assets[i].h) / textures[assets[i].group]->height();
-
-        if (false) {    // TODO this should be where we check for solid?? idk this is all a mess now
-            vectorptr = &vertex_data_solid;
-            num_solid_tiles += 1;
-        } else {
-            vectorptr = &vertex_data;
-        }
 
         vectorptr->push_back(assets[i].s);
         vectorptr->push_back(assets[i].t);
@@ -238,9 +231,9 @@ void WorldWidget::paintGL()
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     //cursor + tiles
-    program->setUniformValue("solid", add_solid);
     std::vector<AssetInstance>& assets_to_add = cursor_widget->getAssets();
     for (int i = 1; i < num_cursor_tiles + 1; ++i) {
+        program->setUniformValue("solid", add_solid && assets_to_add[i-1].type == 0);
         if (assets_to_add[i-1].group != last_group) {
             last_group = assets_to_add[i-1].group;
             textures[assets_to_add[i-1].group]->bind();
@@ -248,12 +241,13 @@ void WorldWidget::paintGL()
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
 
-    program->setUniformValue("solid", false);
-
     for (unsigned int i = num_cursor_tiles + 1; i < assets.size() + num_cursor_tiles + 1; ++i) {
-        if (assets[i-1-num_cursor_tiles].group != last_group) {
-            last_group = assets[i-1-num_cursor_tiles].group;
-            textures[assets[i-1-num_cursor_tiles].group]->bind();
+        int asset_index = i-1-num_cursor_tiles;
+        program->setUniformValue("solid", assets[asset_index].type == 1 && view_solid);
+
+        if (assets[asset_index].group != last_group) {
+            last_group = assets[asset_index].group;
+            textures[assets[asset_index].group]->bind();
         }
         // toggle solid visibility on for the solid tiles, which are always placed at the end of the buffer
         if (assets.size() + num_cursor_tiles - i < num_solid_tiles && view_solid) {
@@ -318,7 +312,12 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
         }
 
         for(auto asset : assets_to_add) {
-            assets.push_back(AssetInstance{asset.group, asset.x + x - minx, asset.y + y - miny, asset.s, asset.t, asset.w, asset.h});
+            // special case for how solid tiles are handled - type 0 (passable tile) becomes type 1 (sold tile)
+            if (asset.type == 0 && add_solid) {
+                assets.push_back(AssetInstance{asset.group, asset.x + x - minx, asset.y + y - miny, asset.s, asset.t, asset.w, asset.h, 1});
+            } else {
+                assets.push_back(AssetInstance{asset.group, asset.x + x - minx, asset.y + y - miny, asset.s, asset.t, asset.w, asset.h, asset.type});
+            }
         }
 
         updateSurface();

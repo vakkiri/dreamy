@@ -223,7 +223,7 @@ void CursorWidget::mouseReleaseEvent(QMouseEvent *event) {
 
     if (event->button() == Qt::LeftButton) {
         // add a tile
-        assets.push_back(AssetInstance{asset.group, x, y, s, t, asset.w, asset.h});
+        assets.push_back(AssetInstance{asset.group, x, y, s, t, asset.w, asset.h, asset.type});
         updateSurface();
     } else if (event->button() == Qt::RightButton) {
         // delete the first matching tile
@@ -298,6 +298,6 @@ void CursorWidget::resetCursor(Asset& asset) {
 
     assets.clear();
     // imagine not having a copy constructor...
-    assets.push_back(AssetInstance{asset.group, 0, 0, s, t, asset.w, asset.h});
+    assets.push_back(AssetInstance{asset.group, 0, 0, s, t, asset.w, asset.h, asset.type});
     updateSurface();
 }
