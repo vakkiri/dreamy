@@ -23,11 +23,20 @@ CursorWidget::CursorWidget()
     minScale = 1;
     maxScale = 4;
     snap = 16;
+    preview.group = "tiles";
+    preview.x = 0;
+    preview.y = 0;
+    preview.s = 0;
+    preview.t = 0;
+    preview.w = 16;
+    preview.h = 16;
 }
 
 CursorWidget::~CursorWidget() {
     makeCurrent();
-    delete tile_texture;
+    for (auto tex : textures) {
+        delete tex.second;
+    }
     vbo.destroy();
 }
 
@@ -73,75 +82,69 @@ void CursorWidget::initializeGL() {
     program->setUniformValue("pcMatrix", matrix);
     checkError("Setting matrix uniform");
 
-    tile_texture = new QOpenGLTexture(editor_assets.get_image("tiles"));
-    tile_texture->setMagnificationFilter(QOpenGLTexture::Filter::Nearest);
+    for (auto asset : editor_assets.get_assets()) {
+        QOpenGLTexture* new_tex = new QOpenGLTexture(editor_assets.get_image(asset.first));
+        new_tex->setMagnificationFilter(QOpenGLTexture::Filter::Nearest);
+        textures[asset.first] = new_tex;
+    }
     program->setUniformValue("texUnit", 0);
     checkError("Creating tile");
 
-    initTiles();
     checkError("Initializing tiles");
 
-}
-
-void CursorWidget::initTiles()
-{
-    // honestly this is really useless since the positions and texture coord are easily calculated
-    // on the fly. might remove.
-    for (int i = 0; i < tile_texture->width(); i += TILE_WIDTH)
-    {
-        tile_info.push_back(TextureData{float(i) / tile_texture->width(), 0});
-    }
 }
 
 void CursorWidget::initBuffers()
 {
     QVector<float> vertex_data;
-    float tex_w = float(TILE_WIDTH)/tile_texture->width();
-    float tex_h = float(TILE_WIDTH)/tile_texture->height();
+    float ds = float(preview.w)/textures[preview.group]->width();
+    float dt = float(preview.h)/textures[preview.group]->height();
 
     /* add the preview */
-    // background
     vertex_data.push_back(preview.s);
     vertex_data.push_back(preview.t);
     vertex_data.push_back(preview.x);
     vertex_data.push_back(preview.y);
 
-    vertex_data.push_back(preview.s + tex_w);
+    vertex_data.push_back(preview.s + ds);
     vertex_data.push_back(preview.t);
-    vertex_data.push_back(preview.x + TILE_WIDTH);
+    vertex_data.push_back(preview.x + preview.w);
     vertex_data.push_back(preview.y);
 
-    vertex_data.push_back(preview.s + tex_w);
-    vertex_data.push_back(preview.t + tex_h);
-    vertex_data.push_back(preview.x + TILE_WIDTH);
-    vertex_data.push_back(preview.y + TILE_WIDTH);
+    vertex_data.push_back(preview.s + ds);
+    vertex_data.push_back(preview.t + dt);
+    vertex_data.push_back(preview.x + preview.w);
+    vertex_data.push_back(preview.y + preview.h);
 
     vertex_data.push_back(preview.s);
-    vertex_data.push_back(preview.t + tex_h);
+    vertex_data.push_back(preview.t + dt);
     vertex_data.push_back(preview.x);
-    vertex_data.push_back(preview.y + TILE_WIDTH);
+    vertex_data.push_back(preview.y + preview.h);
 
     /* add the actual tiles */
-    for (unsigned int i = 0; i < tiles.size(); ++i) {
-        vertex_data.push_back(tiles[i].s);
-        vertex_data.push_back(tiles[i].t);
-        vertex_data.push_back(tiles[i].x);
-        vertex_data.push_back(tiles[i].y);
+    for (unsigned int i = 0; i < assets.size(); ++i) {
+        ds = float(assets[i].w)/textures[assets[i].group]->width();
+        dt = float(assets[i].h)/textures[assets[i].group]->height();
 
-        vertex_data.push_back(tiles[i].s + tex_w);
-        vertex_data.push_back(tiles[i].t);
-        vertex_data.push_back(tiles[i].x + TILE_WIDTH);
-        vertex_data.push_back(tiles[i].y);
+        vertex_data.push_back(assets[i].s);
+        vertex_data.push_back(assets[i].t);
+        vertex_data.push_back(assets[i].x);
+        vertex_data.push_back(assets[i].y);
 
-        vertex_data.push_back(tiles[i].s + tex_w);
-        vertex_data.push_back(tiles[i].t + tex_h);
-        vertex_data.push_back(tiles[i].x + TILE_WIDTH);
-        vertex_data.push_back(tiles[i].y + TILE_WIDTH);
+        vertex_data.push_back(assets[i].s + ds);
+        vertex_data.push_back(assets[i].t);
+        vertex_data.push_back(assets[i].x + assets[i].w);
+        vertex_data.push_back(assets[i].y);
 
-        vertex_data.push_back(tiles[i].s);
-        vertex_data.push_back(tiles[i].t + tex_h);
-        vertex_data.push_back(tiles[i].x);
-        vertex_data.push_back(tiles[i].y + TILE_WIDTH);
+        vertex_data.push_back(assets[i].s + ds);
+        vertex_data.push_back(assets[i].t + dt);
+        vertex_data.push_back(assets[i].x + assets[i].w);
+        vertex_data.push_back(assets[i].y + assets[i].h);
+
+        vertex_data.push_back(assets[i].s);
+        vertex_data.push_back(assets[i].t + dt);
+        vertex_data.push_back(assets[i].x);
+        vertex_data.push_back(assets[i].y + assets[i].h);
     }
 
     vbo.bind();
@@ -170,13 +173,18 @@ void CursorWidget::resizeGL(int w, int h)
 void CursorWidget::paintGL()
 {
     ogl->glClear(GL_COLOR_BUFFER_BIT);
-    tile_texture->bind();
 
     // draw the preview
+    textures[preview.group]->bind();
+    std::string last_group = preview.group;
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     // draw the cursor tiles
-    for (unsigned int i = 1; i < tiles.size() + 1; ++i) {
+    for (unsigned int i = 1; i < assets.size() + 1; ++i) {
+        if (assets[i-1].group != last_group) {
+            textures[assets[i-1].group]->bind();
+            last_group = assets[i-1].group;
+        }
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
     checkError("Drawing elements");
@@ -208,20 +216,22 @@ void CursorWidget::mouseReleaseEvent(QMouseEvent *event) {
     x = int(x) - (int(x) % int(snap));
     y = int(y) - (int(y) % int(snap));
 
-    float s = tile_info[assets_widget->getSelection()].s;
-    float t = tile_info[assets_widget->getSelection()].t;
+    Asset asset = assets_widget->getSelection();
+
+    float s = asset.s / textures[asset.group]->width();
+    float t = asset.t / textures[asset.group]->height();
 
     if (event->button() == Qt::LeftButton) {
         // add a tile
-        tiles.push_back(TileInfo{s,t,x,y});
+        assets.push_back(AssetInstance{asset.group, x, y, s, t, asset.w, asset.h});
         updateSurface();
     } else if (event->button() == Qt::RightButton) {
         // delete the first matching tile
-        for (int i = tiles.size() - 1; i >= 0; --i) {
+        for (int i = assets.size() - 1; i >= 0; --i) {
             // i guess this method of deletion doesn't actually maintain order lol oops
-            if (clickInTile(event->x() / scale, event->y() / scale, tiles[i].x, tiles[i].y)) {
-                tiles[i] = tiles.back();
-                tiles.pop_back();
+            if (clickInRect(event->x() / scale, event->y() / scale, assets[i].x, assets[i].y, assets[i].w, assets[i].h)) {
+                assets[i] = assets.back();
+                assets.pop_back();
                 updateSurface();
                 break;
             }
@@ -255,6 +265,8 @@ void CursorWidget::wheelEvent(QWheelEvent *event) {
 }
 
 void CursorWidget::mouseMoveEvent(QMouseEvent *event) {
+    Asset& asset = assets_widget->getSelection();
+
     float x = event->x() / scale;
     float y = event->y() / scale;
     x = int(x) - (int(x) % int(snap));
@@ -262,8 +274,11 @@ void CursorWidget::mouseMoveEvent(QMouseEvent *event) {
 
     preview.x = x;
     preview.y = y;
-    preview.s = tile_info[assets_widget->getSelection()].s;
-    preview.t = tile_info[assets_widget->getSelection()].t;
+    preview.s = asset.s / textures[asset.group]->width();
+    preview.t = asset.t / textures[asset.group]->height();
+    preview.w = asset.w;
+    preview.h = asset.h;
+    preview.group = asset.group;
 
     updateSurface();
     event->accept();
@@ -273,15 +288,16 @@ void CursorWidget::setSnap(int snap) {
     this->snap = snap;
 }
 
-std::vector<TileInfo>& CursorWidget::getTiles() {
-    return tiles;
+std::vector<AssetInstance>& CursorWidget::getAssets() {
+    return assets;
 }
 
-void CursorWidget::resetCursor(int tileIndex) {
-    float s = tile_info[tileIndex].s;
-    float t = tile_info[tileIndex].t;
+void CursorWidget::resetCursor(Asset& asset) {
+    float s = asset.s / textures[asset.group]->width();
+    float t = asset.t / textures[asset.group]->height();
 
-    tiles.clear();
-    tiles.push_back(TileInfo{s, t, 0, 0});
+    assets.clear();
+    // imagine not having a copy constructor...
+    assets.push_back(AssetInstance{asset.group, 0, 0, s, t, asset.w, asset.h});
     updateSurface();
 }

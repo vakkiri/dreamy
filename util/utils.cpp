@@ -7,3 +7,10 @@ bool clickInTile(float clickx, float clicky, float tilex, float tiley) {
 
     return xin && yin;
 }
+
+bool clickInRect(float clickx, float clicky, float rectx, float recty, float rectw, float recth) {
+    bool xin = clickx >= rectx && clickx <= rectx + rectw;
+    bool yin = clicky >= recty && clicky <= recty + recth;
+
+    return xin && yin;
+}

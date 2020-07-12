@@ -4,6 +4,7 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLWidget>
 #include <vector>
+#include <unordered_map>
 #include <QOpenGLBuffer>
 #include <QMatrix4x4>
 #include "../types/types.h"
@@ -23,8 +24,8 @@ public:
 
     void setAssetsWidget(AssetsWidget *widget);
     void setSnap(int snap);
-    std::vector<TileInfo>& getTiles();
-    void resetCursor(int tileIndex);
+    std::vector<AssetInstance>& getAssets();
+    void resetCursor(Asset& asset);
 
 
 protected:
@@ -37,7 +38,6 @@ protected:
 
 
 private:
-    void initTiles();
     void initBuffers();
     void updateSurface();
     int posToTile(int x, int y);
@@ -47,22 +47,21 @@ private:
     AssetsWidget *assets_widget;
 
     QOpenGLFunctions_3_3_Core *ogl;
-    QOpenGLTexture *tile_texture;
+    std::unordered_map<std::string, QOpenGLTexture*> textures;
     QOpenGLBuffer vbo;
     QOpenGLBuffer ibo;
     QOpenGLShaderProgram *program;
     QOpenGLShader *vertex_shader;
     QOpenGLShader *fragment_shader;
 
-    std::vector<TileInfo> tiles;
-    std::vector<TextureData> tile_info;
+    std::vector<AssetInstance> assets;
 
     QMatrix4x4 matrix;
     float scale;
     float minScale;
     float maxScale;
 
-    TileInfo preview;
+    AssetInstance preview;
 
     void checkError(std::string action);
 };

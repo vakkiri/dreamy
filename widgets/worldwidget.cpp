@@ -36,7 +36,9 @@ WorldWidget::WorldWidget()
 
 WorldWidget::~WorldWidget() {
     makeCurrent();
-    delete tile_texture;
+    for (auto tex : textures) {
+        delete tex.second;
+    }
     vbo.destroy();
 }
 
@@ -82,35 +84,25 @@ void WorldWidget::initializeGL() {
     program->setUniformValue("pcMatrix", matrix);
     checkError("Setting matrix uniform");
 
-    tile_texture = new QOpenGLTexture(editor_assets.get_image("tiles"));
-    tile_texture->setMagnificationFilter(QOpenGLTexture::Filter::Nearest);
-    bg_texture = new QOpenGLTexture(editor_assets.get_image("background"));
-    bg_texture->setMagnificationFilter(QOpenGLTexture::Filter::Nearest);
+    for (auto asset : editor_assets.get_assets()) {
+        QOpenGLTexture* new_tex = new QOpenGLTexture(editor_assets.get_image(asset.first));
+        new_tex->setMagnificationFilter(QOpenGLTexture::Filter::Nearest);
+        textures[asset.first] = new_tex;
+    }
+
     program->setUniformValue("texUnit", 0);
     program->setUniformValue("solid", true);
     checkError("Creating tile");
 
-    initTiles();
     checkError("Initializing tiles");
-
-}
-
-void WorldWidget::initTiles()
-{
-    // honestly this is really useless since the positions and texture coord are easily calculated
-    // on the fly. might remove.
-    for (int i = 0; i < tile_texture->width(); i += TILE_WIDTH)
-    {
-        tile_info.push_back(TextureData{float(i) / tile_texture->width(), 0});
-    }
 }
 
 void WorldWidget::initBuffers()
 {
     QVector<float> vertex_data;
     QVector<float> vertex_data_solid;
-    float tex_w = float(TILE_WIDTH)/tile_texture->width();
-    float tex_h = float(TILE_WIDTH)/tile_texture->height();
+    QOpenGLTexture* bg_texture = textures["background"];
+
     float bgx = (width() / (2 * scale)) - (bg_texture->width() / 2) - tx;
     float bgy = (height() / (2* scale)) - (bg_texture->height() / 2) - ty;
     float bg_ds = (-tx/bg_texture->width()) * 0.5;  // parallax bg scroll
@@ -137,70 +129,77 @@ void WorldWidget::initBuffers()
     vertex_data.push_back(bgy + bg_texture->height());
 
     // cursor preview
-    std::vector<TileInfo>& tiles_to_add = cursor_widget->getTiles();
-    num_cursor_tiles = tiles_to_add.size();
+    std::vector<AssetInstance>& assets_to_add = cursor_widget->getAssets();
+    num_cursor_tiles = assets_to_add.size();
     float minx = 10000; // what is MAX_FLOAT lol
     float miny = 10000;
-    for(auto t : tiles_to_add) {
+    for(auto t : assets_to_add) {
         minx = std::min(minx, t.x);
         miny = std::min(miny, t.y);
     }
-    for(auto t : tiles_to_add) {
-        float x = t.x + previewx - minx - tx;
-        float y = t.y + previewy - miny - ty;
+    for(auto asset : assets_to_add) {
+        float x = asset.x + previewx - minx - tx;
+        float y = asset.y + previewy - miny - ty;
+        float ds = float(asset.w) / textures[asset.group]->width();
+        float dt = float(asset.h) / textures[asset.group]->height();
+
         x = int(x) - (int(x) % snap);
         y = int(y) - (int(y) % snap);
 
-        vertex_data.push_back(t.s);
-        vertex_data.push_back(t.t);
+        vertex_data.push_back(asset.s);
+        vertex_data.push_back(asset.t);
         vertex_data.push_back(x);
         vertex_data.push_back(y);
 
-        vertex_data.push_back(t.s + tex_w);
-        vertex_data.push_back(t.t);
-        vertex_data.push_back(x + TILE_WIDTH);
+        vertex_data.push_back(asset.s + ds);
+        vertex_data.push_back(asset.t);
+        vertex_data.push_back(x + asset.w);
         vertex_data.push_back(y);
 
-        vertex_data.push_back(t.s + tex_w);
-        vertex_data.push_back(t.t + tex_h);
-        vertex_data.push_back(x + TILE_WIDTH);
-        vertex_data.push_back(y + TILE_WIDTH);
+        vertex_data.push_back(asset.s + ds);
+        vertex_data.push_back(asset.t + dt);
+        vertex_data.push_back(x + asset.w);
+        vertex_data.push_back(y + asset.h);
 
-        vertex_data.push_back(t.s);
-        vertex_data.push_back(t.t + tex_h);
+        vertex_data.push_back(asset.s);
+        vertex_data.push_back(asset.t + dt);
         vertex_data.push_back(x);
-        vertex_data.push_back(y + TILE_WIDTH);
+        vertex_data.push_back(y + asset.h);
     }
 
     // tiles
     num_solid_tiles = 0;
-    for (unsigned int i = 0; i < tiles.size(); ++i) {
+    for (unsigned int i = 0; i < assets.size(); ++i) {
         QVector<float> *vectorptr;
-        if (tiles[i].solid) {
+        float ds = float(assets[i].w) / textures[assets[i].group]->width();
+        float dt = float(assets[i].h) / textures[assets[i].group]->height();
+
+        if (false) {    // TODO this should be where we check for solid?? idk this is all a mess now
             vectorptr = &vertex_data_solid;
             num_solid_tiles += 1;
         } else {
             vectorptr = &vertex_data;
         }
-        vectorptr->push_back(tiles[i].s);
-        vectorptr->push_back(tiles[i].t);
-        vectorptr->push_back(tiles[i].x);
-        vectorptr->push_back(tiles[i].y);
 
-        vectorptr->push_back(tiles[i].s + tex_w);
-        vectorptr->push_back(tiles[i].t);
-        vectorptr->push_back(tiles[i].x + TILE_WIDTH);
-        vectorptr->push_back(tiles[i].y);
+        vectorptr->push_back(assets[i].s);
+        vectorptr->push_back(assets[i].t);
+        vectorptr->push_back(assets[i].x);
+        vectorptr->push_back(assets[i].y);
 
-        vectorptr->push_back(tiles[i].s + tex_w);
-        vectorptr->push_back(tiles[i].t + tex_h);
-        vectorptr->push_back(tiles[i].x + TILE_WIDTH);
-        vectorptr->push_back(tiles[i].y + TILE_WIDTH);
+        vectorptr->push_back(assets[i].s + ds);
+        vectorptr->push_back(assets[i].t);
+        vectorptr->push_back(assets[i].x + assets[i].w);
+        vectorptr->push_back(assets[i].y);
 
-        vectorptr->push_back(tiles[i].s);
-        vectorptr->push_back(tiles[i].t + tex_h);
-        vectorptr->push_back(tiles[i].x);
-        vectorptr->push_back(tiles[i].y + TILE_WIDTH);
+        vectorptr->push_back(assets[i].s + ds);
+        vectorptr->push_back(assets[i].t + dt);
+        vectorptr->push_back(assets[i].x + assets[i].w);
+        vectorptr->push_back(assets[i].y + assets[i].h);
+
+        vectorptr->push_back(assets[i].s);
+        vectorptr->push_back(assets[i].t + dt);
+        vectorptr->push_back(assets[i].x);
+        vectorptr->push_back(assets[i].y + assets[i].h);
     }
 
     vertex_data.append(vertex_data_solid);
@@ -230,25 +229,34 @@ void WorldWidget::resizeGL(int w, int h)
 
 void WorldWidget::paintGL()
 {
+    std::string last_group = "background";
     ogl->glClear(GL_COLOR_BUFFER_BIT);
     //background
-    bg_texture->bind();
+    textures["background"]->bind();
     // don't draw the background as "solid"
     program->setUniformValue("solid", false);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     //cursor + tiles
-    tile_texture->bind();
     program->setUniformValue("solid", add_solid);
+    std::vector<AssetInstance>& assets_to_add = cursor_widget->getAssets();
     for (int i = 1; i < num_cursor_tiles + 1; ++i) {
+        if (assets_to_add[i-1].group != last_group) {
+            last_group = assets_to_add[i-1].group;
+            textures[assets_to_add[i-1].group]->bind();
+        }
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
 
     program->setUniformValue("solid", false);
 
-    for (unsigned int i = num_cursor_tiles + 1; i < tiles.size() + num_cursor_tiles + 1; ++i) {
+    for (unsigned int i = num_cursor_tiles + 1; i < assets.size() + num_cursor_tiles + 1; ++i) {
+        if (assets[i-1-num_cursor_tiles].group != last_group) {
+            last_group = assets[i-1-num_cursor_tiles].group;
+            textures[assets[i-1-num_cursor_tiles].group]->bind();
+        }
         // toggle solid visibility on for the solid tiles, which are always placed at the end of the buffer
-        if (tiles.size() + num_cursor_tiles - i < num_solid_tiles && view_solid) {
+        if (assets.size() + num_cursor_tiles - i < num_solid_tiles && view_solid) {
             program->setUniformValue("solid", true);
         }
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
@@ -298,27 +306,29 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
 
     if (event->button() == Qt::LeftButton) {
         // add all cursor tiles
-        std::vector<TileInfo>& tiles_to_add = cursor_widget->getTiles();
+        std::vector<AssetInstance>& assets_to_add = cursor_widget->getAssets();
         // find  minimum x and y
         // The point of this is a slight QOL impprovmenet since we can assume that we aren't interested in placing
         // any "empty" spaces to the left or above our cursor.
         float minx = 10000; // what is MAX_FLOAT lol
         float miny = 10000;
-        for(auto t : tiles_to_add) {
-            minx = std::min(minx, t.x);
-            miny = std::min(miny, t.y);
+        for(auto asset : assets_to_add) {
+            minx = std::min(minx, asset.x);
+            miny = std::min(miny, asset.y);
         }
-        for(auto t : tiles_to_add) {
-            tiles.push_back(TileInfo{t.s,t.t,t.x + x - minx,t.y + y - miny, add_solid, current_layer});
+
+        for(auto asset : assets_to_add) {
+            assets.push_back(AssetInstance{asset.group, asset.x + x - minx, asset.y + y - miny, asset.s, asset.t, asset.w, asset.h});
         }
+
         updateSurface();
     } else if (event->button() == Qt::RightButton) {
         // delete the first matching tile
-        for (int i = tiles.size() - 1; i >= 0; --i) {
+        for (int i = assets.size() - 1; i >= 0; --i) {
             // i guess this method of deletion doesn't actually maintain order lol oops
-            if (clickInTile(event->x() / scale - tx, event->y() / scale - ty, tiles[i].x, tiles[i].y)) {
-                tiles[i] = tiles.back();
-                tiles.pop_back();
+            if (clickInRect(event->x() / scale - tx, event->y() / scale - ty, assets[i].x, assets[i].y, assets[i].w, assets[i].h)) {
+                assets[i] = assets.back();
+                assets.pop_back();
                 updateSurface();
                 break;
             }

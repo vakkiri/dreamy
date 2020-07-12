@@ -19,6 +19,7 @@ struct TextureData {
 };
 
 struct Asset {
+    std::string group;
     float s;
     float t;
     float w;
@@ -26,7 +27,7 @@ struct Asset {
 };
 
 struct AssetInstance {
-    std::string image_name;
+    std::string group;
     float x;
     float y;
     float s;

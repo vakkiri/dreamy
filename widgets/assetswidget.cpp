@@ -4,8 +4,10 @@
 #include <QWheelEvent>
 
 #include <iostream>
+#include <cmath>
 
 #include "../util/assetcontainer.h"
+#include "../util/utils.h"
 #include "assetswidget.h"
 #include "cursorwidget.h"
 #include "const.h"
@@ -19,7 +21,7 @@ AssetsWidget::AssetsWidget()
     minScale = 1.0;
     maxScale = 4.0;
     scale = 2.0;
-    selection = 0;
+    selection = Asset{"tiles", 0, 0, 16.f, 16.f};
     cursor_widget = nullptr;
     selected_group = "tiles";
 }
@@ -81,60 +83,8 @@ void AssetsWidget::initializeGL()
     program->setUniformValue("texUnit", 0);
     checkError("Creating tile");
 
-    initTiles();
-    checkError("Initializing tiles");
-
     initBuffers();
     checkError("Initializing buffers");
-}
-
-void AssetsWidget::initTiles()
-{
-    // honestly this is really useless since the positions and texture coord are easily calculated
-    // on the fly. might remove.
-    QOpenGLTexture *tile_texture = textures["tiles"];
-    for (int i = 0; i < tile_texture->width(); i += TILE_WIDTH)
-    {
-        tiles.push_back(TextureData{float(i) / tile_texture->width(), 0});
-    }
-}
-
-void AssetsWidget::addTilesToBuffer(QVector<float>& buffer) {
-    // Note this should *not* be a special case. Should refactor such that we can just
-    // draw tiles using the initAssetBuffer call.
-    QOpenGLTexture *tile_texture = textures["tiles"];
-    float tex_w = float(TILE_WIDTH)/tile_texture->width();
-    float tex_h = float(TILE_WIDTH)/tile_texture->height();
-    float x = 0;
-    float y = 0;
-
-    for (unsigned int i = 0; i < tiles.size(); ++i) {
-        buffer.push_back(tiles[i].s);
-        buffer.push_back(tiles[i].t);
-        buffer.push_back(x);
-        buffer.push_back(y);
-
-        buffer.push_back(tiles[i].s + tex_w);
-        buffer.push_back(tiles[i].t);
-        buffer.push_back(x + TILE_WIDTH);
-        buffer.push_back(y);
-
-        buffer.push_back(tiles[i].s + tex_w);
-        buffer.push_back(tiles[i].t + tex_h);
-        buffer.push_back(x + TILE_WIDTH);
-        buffer.push_back(y + TILE_WIDTH);
-
-        buffer.push_back(tiles[i].s);
-        buffer.push_back(tiles[i].t + tex_h);
-        buffer.push_back(x);
-        buffer.push_back(y + TILE_WIDTH);
-
-        x += TILE_WIDTH;
-        if (x + TILE_WIDTH > width() / scale) {
-            x = 0;
-            y += TILE_WIDTH;
-        }
-    }
 }
 
 void AssetsWidget::addAssetsToBuffer(QVector<float>& buffer, std::string group_name) {
@@ -180,11 +130,8 @@ void AssetsWidget::initBuffers()
 {
     QVector<float> vertex_data;
 
-    if (selected_group == "tiles") {
-        addTilesToBuffer(vertex_data);
-    } else {
-        addAssetsToBuffer(vertex_data, selected_group);
-    }
+
+    addAssetsToBuffer(vertex_data, selected_group);
 
     vbo.bind();
     vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
@@ -213,7 +160,7 @@ void AssetsWidget::paintGL()
     ogl->glClear(GL_COLOR_BUFFER_BIT);
     QOpenGLTexture *texture = textures[selected_group];
     texture->bind();
-    for (unsigned int i = 0; i < tiles.size(); ++i) {
+    for (unsigned int i = 0; i < editor_assets.get_assets(selected_group).size(); ++i) {
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
     checkError("Drawing elements");
@@ -263,20 +210,34 @@ void AssetsWidget::wheelEvent(QWheelEvent *event) {
 }
 
 void AssetsWidget::mouseReleaseEvent(QMouseEvent *event) {
-    selection = posToTile(event->x(), event->y());
+    selectAsset(event->x(), event->y());
+
     if (event->button() == Qt::RightButton) {
         cursor_widget->resetCursor(selection);
     }
 }
 
-int AssetsWidget::posToTile(int x, int y) {
-    int row_size = width() / (TILE_WIDTH * scale);
-    int row = y / (TILE_WIDTH * scale);
-    int col = x / (TILE_WIDTH * scale);
-    return (row * row_size) + col;
+void AssetsWidget::selectAsset(int x, int y) {
+    x /= scale;
+    y /= scale;
+    x += width() / scale * floor(y / textures[selected_group]->height());
+    y = int(y) % textures[selected_group]->height();
+
+    std::vector<Asset> assets = editor_assets.get_assets(selected_group);
+    for (auto asset : assets) {
+        // i guess this method of deletion doesn't actually maintain order lol oops
+        if (clickInRect(x, y, asset.s, asset.t, asset.w, asset.h)) {
+            selection.s = asset.s;
+            selection.t = asset.t;
+            selection.w = asset.w;
+            selection.h = asset.h;
+            selection.group = selected_group;
+            break;
+        }
+    }
 }
 
-int AssetsWidget::getSelection() {
+Asset& AssetsWidget::getSelection() {
     return selection;
 }
 

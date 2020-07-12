@@ -30,18 +30,16 @@ public:
     void wheelEvent(QWheelEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
 
-    int getSelection();
+    Asset& getSelection();
     void setCursorWidget(CursorWidget *widget);
 
 private:
-    void initTiles();
     void initBuffers();
-    void addTilesToBuffer(QVector<float>& buffer);
     void addAssetsToBuffer(QVector<float>& buffer, std::string group_name);
     void updateScale(float newScale);
-    int posToTile(int x, int y);
+    void selectAsset(int x, int y);
 
-    int selection;
+    Asset selection;
     std::string selected_group;
     CursorWidget *cursor_widget;
 
@@ -52,8 +50,6 @@ private:
     QOpenGLShaderProgram *program;
     QOpenGLShader *vertex_shader;
     QOpenGLShader *fragment_shader;
-
-    std::vector<TextureData> tiles;
 
     QMatrix4x4 matrix;
     float scale;

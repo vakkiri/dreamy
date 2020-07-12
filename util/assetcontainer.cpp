@@ -37,10 +37,12 @@ void AssetContainer::init_images()
         }
     }
 
-    // wow, this would actually be a good place to init all those tiles...
+    for (int i = 0; i < images["tiles"].width(); i += 16.f) {
+        assets["tiles"].push_back(Asset{"tiles", float(i), 0.f, 16.f, 16.f});
+    }
 
-    assets["objects"].push_back(Asset{0.f , 0.f, 32.f, 32.f});
-    assets["objects"].push_back(Asset{32.f, 0.f, 32.f, 32.f});
+    assets["objects"].push_back(Asset{"objects", 0.f , 0.f, 32.f, 32.f});
+    assets["objects"].push_back(Asset{"objects", 32.f, 0.f, 32.f, 32.f});
 
 }
 

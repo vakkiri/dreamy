@@ -5,6 +5,8 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLBuffer>
 #include <QMatrix4x4>
+#include <vector>
+#include <unordered_map>
 
 #include "../types/types.h"
 
@@ -34,7 +36,6 @@ protected:
 
 
 private:
-    void initTiles();
     void initBuffers();
     void updateSurface();
     void scaleBy(float amt);
@@ -44,15 +45,13 @@ private:
     CursorWidget *cursor_widget;
 
     QOpenGLFunctions_3_3_Core *ogl;
-    QOpenGLTexture *tile_texture;
-    QOpenGLTexture *bg_texture;
+    std::unordered_map<std::string, QOpenGLTexture*> textures;
     QOpenGLBuffer vbo;
     QOpenGLShaderProgram *program;
     QOpenGLShader *vertex_shader;
     QOpenGLShader *fragment_shader;
 
-    std::vector<TileInfo> tiles;
-    std::vector<TextureData> tile_info;
+    std::vector<AssetInstance> assets;
 
     QMatrix4x4 matrix;
     float scale;
