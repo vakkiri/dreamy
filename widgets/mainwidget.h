@@ -2,8 +2,11 @@
 #define MAINWIDGET_H
 
 #include <QWidget>
+#include <vector>
+#include "../types/types.h"
 
 class MainLayout;
+class WorldWidget;
 
 class MainWidget : public QWidget
 {
@@ -11,7 +14,8 @@ class MainWidget : public QWidget
 public:
     explicit MainWidget(QWidget *parent = nullptr);
     ~MainWidget();
-signals:
+    WorldWidget* getWorld();
+
 private:
     MainLayout *layout;
 

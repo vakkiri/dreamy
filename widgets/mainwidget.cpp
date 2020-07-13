@@ -11,3 +11,6 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
 MainWidget::~MainWidget() {
     delete layout;
 }
+WorldWidget* MainWidget::getWorld() {
+    return layout->getWorld();
+}

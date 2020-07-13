@@ -38,4 +38,10 @@ struct AssetInstance {
     int type;
 };
 
+struct AssetOutput {
+    int16_t type;
+    int16_t x;
+    int16_t y;
+};
+
 #endif // TYPES_H

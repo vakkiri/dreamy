@@ -1,7 +1,9 @@
-#ifndef MAINLAYOUT_H;
+#ifndef MAINLAYOUT_H
 #define MAINLAYOUT_H
 
 #include <QGridLayout>
+#include <vector>
+#include "../types/types.h"
 
 class QVBoxLayout;
 class QHBoxLayout;
@@ -22,6 +24,8 @@ class MainLayout : public QGridLayout
 public:
     MainLayout();
     virtual ~MainLayout();
+    WorldWidget* getWorld();
+
 private:
     QVBoxLayout *center_layout;
     LeftLayout *left_layout;

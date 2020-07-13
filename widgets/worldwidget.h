@@ -24,6 +24,8 @@ public:
 
     void setCursorWidget(CursorWidget *widget);
     void setSnap(int snap);
+    std::vector<AssetInstance>& getAssets();
+    void clearAssets();
 
 protected:
     void initializeGL() override;

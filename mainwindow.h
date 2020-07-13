@@ -8,6 +8,7 @@ class QMenu;
 class QAction;
 
 class MainWidget;
+class WorldWidget;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -22,9 +23,11 @@ public:
     ~MainWindow();
 
 private:
+    void saveFile(std::string path);
 
     Ui::MainWindow *ui;
     MainWidget *main_widget;
+    WorldWidget *world;
 
     QMenu *file_menu;
 

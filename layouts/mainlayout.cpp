@@ -125,3 +125,6 @@ void MainLayout::updateLayerLabel(int value) {
     layer_label->setText(QString("Layer: ") + QString::number(value));
 }
 
+WorldWidget* MainLayout::getWorld() {
+    return world_widget;
+}

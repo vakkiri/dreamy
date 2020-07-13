@@ -412,3 +412,11 @@ void WorldWidget::updateViewSolid(int state) {
 void WorldWidget::updateCurrentLayer(int layer) {
     current_layer = layer;
 }
+
+std::vector<AssetInstance>& WorldWidget::getAssets() {
+    return assets;
+}
+
+void WorldWidget::clearAssets() {
+    assets.clear();
+}
