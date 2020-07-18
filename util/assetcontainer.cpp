@@ -42,7 +42,7 @@ void AssetContainer::init_images()
 
     // object types: 0 = passable tile, 1 = solid tile, 2.. = custom
     for (int i = 0; i < images["tiles"].width(); i += 16.f) {
-        assets["tiles"].push_back(Asset{"tiles", float(i), 0.f, 16.f, 16.f, 0});
+        assets["tiles"].push_back(Asset{"tiles", float(i) / images["tiles"].width(), 0.f, 16.f, 16.f, 0});
     }
 
     try {

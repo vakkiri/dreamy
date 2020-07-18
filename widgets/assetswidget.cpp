@@ -95,23 +95,26 @@ void AssetsWidget::addAssetsToBuffer(QVector<float>& buffer, std::string group_n
     QOpenGLTexture* tex = textures[group_name];
 
     for (auto asset : assets) {
-        buffer.push_back(asset.s / tex->width());
-        buffer.push_back(asset.t / tex->height());
+        float ds = float(asset.w) / tex->width();
+        float dt = float(asset.h) / tex->height();
+
+        buffer.push_back(asset.s);
+        buffer.push_back(asset.t);
         buffer.push_back(x);
         buffer.push_back(y);
 
-        buffer.push_back((asset.s + asset.w) / tex->width());
-        buffer.push_back(asset.t / tex->height());
+        buffer.push_back(asset.s + ds);
+        buffer.push_back(asset.t);
         buffer.push_back(x + asset.w);
         buffer.push_back(y);
 
-        buffer.push_back((asset.s + asset.w) / tex->width());
-        buffer.push_back((asset.t + asset.h) / tex->height());
+        buffer.push_back(asset.s + ds);
+        buffer.push_back(asset.t + dt);
         buffer.push_back(x + asset.w);
         buffer.push_back(y + asset.h);
 
-        buffer.push_back(asset.s / tex->width());
-        buffer.push_back((asset.t + asset.h) / tex->height());
+        buffer.push_back(asset.s);
+        buffer.push_back(asset.t + dt);
         buffer.push_back(x);
         buffer.push_back(y + asset.h);
 
@@ -226,7 +229,9 @@ void AssetsWidget::selectAsset(int x, int y) {
     std::vector<Asset> assets = editor_assets.get_assets(selected_group);
     for (auto asset : assets) {
         // i guess this method of deletion doesn't actually maintain order lol oops
-        if (clickInRect(x, y, asset.s, asset.t, asset.w, asset.h)) {
+        float assetx = asset.s * editor_assets.get_image(asset.group).width();
+        float assety = asset.t * editor_assets.get_image(asset.group).height();
+        if (clickInRect(x, y, assetx, assety, asset.w, asset.h)) {
             selection.s = asset.s;
             selection.t = asset.t;
             selection.w = asset.w;

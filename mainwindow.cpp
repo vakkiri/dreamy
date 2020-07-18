@@ -98,8 +98,8 @@ void MainWindow::open() {
                 new_asset.group = "tiles";
                 new_asset.x = tile.x;
                 new_asset.y = tile.y;
-                new_asset.t = editor_assets.get_assets("tiles")[tile.index].t / editor_assets.get_image("tiles").height();
-                new_asset.s = editor_assets.get_assets("tiles")[tile.index].s / editor_assets.get_image("tiles").width();
+                new_asset.t = editor_assets.get_assets("tiles")[tile.index].t;
+                new_asset.s = editor_assets.get_assets("tiles")[tile.index].s;
                 new_asset.w = editor_assets.get_assets("tiles")[tile.index].w;
                 new_asset.h = editor_assets.get_assets("tiles")[tile.index].h;
 

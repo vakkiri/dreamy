@@ -218,12 +218,9 @@ void CursorWidget::mouseReleaseEvent(QMouseEvent *event) {
 
     Asset asset = assets_widget->getSelection();
 
-    float s = asset.s / textures[asset.group]->width();
-    float t = asset.t / textures[asset.group]->height();
-
     if (event->button() == Qt::LeftButton) {
         // add a tile
-        assets.push_back(AssetInstance{asset.group, x, y, s, t, asset.w, asset.h, asset.type});
+        assets.push_back(AssetInstance{asset.group, x, y, asset.s, asset.t, asset.w, asset.h, asset.type});
         updateSurface();
     } else if (event->button() == Qt::RightButton) {
         // delete the first matching tile
@@ -274,8 +271,8 @@ void CursorWidget::mouseMoveEvent(QMouseEvent *event) {
 
     preview.x = x;
     preview.y = y;
-    preview.s = asset.s / textures[asset.group]->width();
-    preview.t = asset.t / textures[asset.group]->height();
+    preview.s = asset.s;
+    preview.t = asset.t;
     preview.w = asset.w;
     preview.h = asset.h;
     preview.group = asset.group;
@@ -293,9 +290,10 @@ std::vector<AssetInstance>& CursorWidget::getAssets() {
 }
 
 void CursorWidget::resetCursor(Asset& asset) {
-    float s = asset.s / textures[asset.group]->width();
-    float t = asset.t / textures[asset.group]->height();
+    float s = asset.s;
+    float t = asset.t;
 
+    std::cout << s << "," << t << std::endl;
     assets.clear();
     // imagine not having a copy constructor...
     assets.push_back(AssetInstance{asset.group, 0, 0, s, t, asset.w, asset.h, asset.type});
