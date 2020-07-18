@@ -45,8 +45,6 @@ void AssetContainer::init_images()
         assets["tiles"].push_back(Asset{"tiles", float(i), 0.f, 16.f, 16.f, 0});
     }
 
-    // TODO: these should be specified in a config file, not hardcoded
-    // UR NOT ALLOWED TO ADD EVEN 1 MORE WITHOUT THAT REFACTOR
     try {
         std::ifstream file(asset_conf_path);
         if (file.bad()) {
@@ -69,7 +67,8 @@ void AssetContainer::init_images()
                 t = std::stof(tokens[2]);
                 w = std::stof(tokens[3]);
                 h = std::stof(tokens[4]);
-                std::cout << group << " : " << s << " : " << t << " : " << w << " : " << h << std::endl;
+                s = s / get_image(group).width();
+                t = t / get_image(group).height();
                 assets["objects"].push_back(Asset{group, s, t, w, h, object_id++});
             }
         }

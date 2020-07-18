@@ -167,7 +167,7 @@ void WorldWidget::initBuffers()
         vertex_data.push_back(y + asset.h);
     }
 
-    // tiles
+    // world assets
     num_solid_tiles = 0;
     for (unsigned int i = 0; i < assets.size(); ++i) {
         QVector<float> *vectorptr = &vertex_data;   // this is tech debt from when there were multiple vectors and i don't feel like fixing it atm

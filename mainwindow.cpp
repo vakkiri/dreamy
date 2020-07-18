@@ -95,7 +95,6 @@ void MainWindow::open() {
                 TileSavedAsset tile;
                 std::memcpy(&tile, cur, sizeof(tile));
 
-                std::cout << "x: " << tile.x << std::endl;
                 new_asset.group = "tiles";
                 new_asset.x = tile.x;
                 new_asset.y = tile.y;
@@ -125,17 +124,17 @@ void MainWindow::open() {
                 world->addAsset(new_asset);
 
                 cur += sizeof(player);
-            } else if (val == 3) {      // monster
+            } else if (val == 3 || val == 4) {      // monster
                 ObjectSavedAsset monster;
                 std::memcpy(&monster, cur, sizeof(monster));
 
                 new_asset.group = "objects";
                 new_asset.x = monster.x;
                 new_asset.y = monster.y;
-                new_asset.t = editor_assets.get_assets("objects")[1].t;
-                new_asset.s = editor_assets.get_assets("objects")[1].s;
-                new_asset.w = editor_assets.get_assets("objects")[1].w;
-                new_asset.h = editor_assets.get_assets("objects")[1].h;
+                new_asset.t = editor_assets.get_assets("objects")[val-2].t;
+                new_asset.s = editor_assets.get_assets("objects")[val-2].s;
+                new_asset.w = editor_assets.get_assets("objects")[val-2].w;
+                new_asset.h = editor_assets.get_assets("objects")[val-2].h;
                 new_asset.type = monster.type;
 
                 world->addAsset(new_asset);
