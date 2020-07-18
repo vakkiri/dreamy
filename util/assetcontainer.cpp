@@ -1,6 +1,8 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <utility>
+#include <sstream>
 #include "assetcontainer.h"
 
 AssetContainer editor_assets;
@@ -14,6 +16,7 @@ void AssetContainer::init_images()
 {
     std::cout << "Loading program images..." << std::endl;
     QString filename;
+    std::string asset_conf_path = "config/assets.conf";
     std::string tileset_path = "assets/tiles.png";
     std::string background_path = "assets/background.png";
     std::string objects_path = "assets/objects.png";
@@ -44,9 +47,36 @@ void AssetContainer::init_images()
 
     // TODO: these should be specified in a config file, not hardcoded
     // UR NOT ALLOWED TO ADD EVEN 1 MORE WITHOUT THAT REFACTOR
-    assets["objects"].push_back(Asset{"objects", 0.f , 0.f, 32.f, 32.f, 2});
-    assets["objects"].push_back(Asset{"objects", 32.f, 0.f, 32.f, 32.f, 3});
+    try {
+        std::ifstream file(asset_conf_path);
+        if (file.bad()) {
+            throw std::runtime_error("Couldn't load asset conf file.");
+        } else {
+            std::string line;
+            std::string group;
+            int object_id = 2;  // first available id, since tiles take 0 and 1
+            float s, t, w, h;
+            while (std::getline(file, line) && line.length() > 0) {
+                std::vector<std::string> tokens;
+                std::istringstream linestream(line);
+                std::string token;
+                char delim = '\t';
+                while (std::getline(linestream, token, delim)) {
+                    tokens.push_back(token);
+                }
+                group = tokens[0];
+                s = std::stof(tokens[1]);
+                t = std::stof(tokens[2]);
+                w = std::stof(tokens[3]);
+                h = std::stof(tokens[4]);
+                std::cout << group << " : " << s << " : " << t << " : " << w << " : " << h << std::endl;
+                assets["objects"].push_back(Asset{group, s, t, w, h, object_id++});
+            }
+        }
 
+    } catch (const std::exception& e) {
+        std::cout << e.what() << std::endl;
+    }
 }
 
 QImage AssetContainer::get_image(std::string name)

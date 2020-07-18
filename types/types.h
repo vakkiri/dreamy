@@ -44,4 +44,18 @@ struct AssetOutput {
     int16_t y;
 };
 
+struct TileSavedAsset {
+    int16_t type;
+    int16_t x;
+    int16_t y;
+    int16_t index;
+};
+
+struct ObjectSavedAsset {
+    int16_t type;
+    int16_t x;
+    int16_t y;
+};
+
+
 #endif // TYPES_H

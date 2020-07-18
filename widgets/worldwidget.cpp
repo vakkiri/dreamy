@@ -255,6 +255,7 @@ void WorldWidget::paintGL()
         }
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
+
     checkError("Drawing elements");
 }
 
@@ -419,4 +420,9 @@ std::vector<AssetInstance>& WorldWidget::getAssets() {
 
 void WorldWidget::clearAssets() {
     assets.clear();
+}
+
+void WorldWidget::addAsset(AssetInstance asset) {
+    assets.push_back(asset);
+    updateSurface();
 }

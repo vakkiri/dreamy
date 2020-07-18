@@ -26,6 +26,7 @@ public:
     void setSnap(int snap);
     std::vector<AssetInstance>& getAssets();
     void clearAssets();
+    void addAsset(AssetInstance asset);
 
 protected:
     void initializeGL() override;

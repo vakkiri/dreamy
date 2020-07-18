@@ -89,13 +89,57 @@ void MainWindow::open() {
         std::memcpy(&val, cur, sizeof(int16_t));
 
         while (val != -1) {
-            std::cout << val << std::endl;
+            AssetInstance new_asset;
+
             if (val == 0 || val == 1) { // tile
-                cur += 2 * 4;
+                TileSavedAsset tile;
+                std::memcpy(&tile, cur, sizeof(tile));
+
+                std::cout << "x: " << tile.x << std::endl;
+                new_asset.group = "tiles";
+                new_asset.x = tile.x;
+                new_asset.y = tile.y;
+                new_asset.t = editor_assets.get_assets("tiles")[tile.index].t / editor_assets.get_image("tiles").height();
+                new_asset.s = editor_assets.get_assets("tiles")[tile.index].s / editor_assets.get_image("tiles").width();
+                new_asset.w = editor_assets.get_assets("tiles")[tile.index].w;
+                new_asset.h = editor_assets.get_assets("tiles")[tile.index].h;
+
+                new_asset.type = tile.type;
+
+
+                world->addAsset(new_asset);
+                cur += sizeof(tile);
             } else if (val == 2) {      // player
-                cur += 2 * 3;
+                ObjectSavedAsset player;
+                std::memcpy(&player, cur, sizeof(player));
+
+                new_asset.group = "objects";
+                new_asset.x = player.x;
+                new_asset.y = player.y;
+                new_asset.t = editor_assets.get_assets("objects")[0].t; // this is srsly bad lol
+                new_asset.s = editor_assets.get_assets("objects")[0].s; // really need a mapping to this info
+                new_asset.w = editor_assets.get_assets("objects")[0].w;
+                new_asset.h = editor_assets.get_assets("objects")[0].h;
+                new_asset.type = player.type;
+
+                world->addAsset(new_asset);
+
+                cur += sizeof(player);
             } else if (val == 3) {      // monster
-                cur += 2 * 3;
+                ObjectSavedAsset monster;
+                std::memcpy(&monster, cur, sizeof(monster));
+
+                new_asset.group = "objects";
+                new_asset.x = monster.x;
+                new_asset.y = monster.y;
+                new_asset.t = editor_assets.get_assets("objects")[1].t;
+                new_asset.s = editor_assets.get_assets("objects")[1].s;
+                new_asset.w = editor_assets.get_assets("objects")[1].w;
+                new_asset.h = editor_assets.get_assets("objects")[1].h;
+                new_asset.type = monster.type;
+
+                world->addAsset(new_asset);
+                cur += sizeof(monster);
             } else {
                 std::cout << "Unkown object type: " << val << std::endl;
                 break;
