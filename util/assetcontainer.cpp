@@ -20,11 +20,13 @@ void AssetContainer::init_images()
     std::string tileset_path = "assets/tiles.png";
     std::string background_path = "assets/background.png";
     std::string objects_path = "assets/objects.png";
+    std::string scenery_path = "assets/scenery.png";
 
     std::vector<std::pair<std::string, std::string>> assets_to_load;
     assets_to_load.push_back(std::make_pair("tiles", tileset_path));
     assets_to_load.push_back(std::make_pair("background", background_path));
     assets_to_load.push_back(std::make_pair("objects", objects_path));
+    assets_to_load.push_back(std::make_pair("scenery", scenery_path));
 
     for (auto asset : assets_to_load) {
         try {
@@ -52,7 +54,6 @@ void AssetContainer::init_images()
         } else {
             std::string line;
             std::string group;
-            int object_id = 2;  // first available id, since tiles take 0 and 1
             float s, t, w, h;
             while (std::getline(file, line) && line.length() > 0) {
                 std::vector<std::string> tokens;
@@ -69,7 +70,12 @@ void AssetContainer::init_images()
                 h = std::stof(tokens[4]);
                 s = s / get_image(group).width();
                 t = t / get_image(group).height();
-                assets["objects"].push_back(Asset{group, s, t, w, h, object_id++});
+
+                // FIXME THIS IS BAD I JUST WANTED A QUICK FIX OK
+                if (group == "scenery")
+                    assets[group].push_back(Asset{group, s, t, w, h, int(assets[group].size() + 101)});
+                else if (group == "objects")
+                    assets[group].push_back(Asset{group, s, t, w, h, int(assets[group].size() + 2)});
             }
         }
 

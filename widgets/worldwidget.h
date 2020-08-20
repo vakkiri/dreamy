@@ -27,6 +27,7 @@ public:
     std::vector<AssetInstance>& getAssets();
     void clearAssets();
     void addAsset(AssetInstance asset);
+    void updateSurface();
 
 protected:
     void initializeGL() override;
@@ -40,7 +41,6 @@ protected:
 
 private:
     void initBuffers();
-    void updateSurface();
     void scaleBy(float amt);
 
     int snap;

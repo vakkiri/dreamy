@@ -238,6 +238,8 @@ void AssetsWidget::selectAsset(int x, int y) {
             selection.h = asset.h;
             selection.group = selected_group;
             selection.type = asset.type;
+            std::cout << "type: " << selection.type;
+            std::cout << "group: " << selection.group;
             break;
         }
     }
@@ -260,6 +262,11 @@ void AssetsWidget::setGroup(int index) {
         }
         case 1: {
             selected_group = "objects";
+            updateScale(scale);
+            break;
+        }
+        case 2: {
+            selected_group = "scenery";
             updateScale(scale);
             break;
         }

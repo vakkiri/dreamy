@@ -314,7 +314,7 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
 
         for(auto asset : assets_to_add) {
             // special case for how solid tiles are handled - type 0 (passable tile) becomes type 1 (sold tile)
-            if (asset.type == 0 && add_solid) {
+            if (asset.type == 0 && asset.group == "tiles" && add_solid) {
                 assets.push_back(AssetInstance{asset.group, asset.x + x - minx, asset.y + y - miny, asset.s, asset.t, asset.w, asset.h, 1});
             } else {
                 assets.push_back(AssetInstance{asset.group, asset.x + x - minx, asset.y + y - miny, asset.s, asset.t, asset.w, asset.h, asset.type});
@@ -424,5 +424,5 @@ void WorldWidget::clearAssets() {
 
 void WorldWidget::addAsset(AssetInstance asset) {
     assets.push_back(asset);
-    updateSurface();
+    //updateSurface();
 }

@@ -14,6 +14,11 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+enum EditMode {
+    ADD_MODE,
+    PORTAL_MODE
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -38,10 +43,15 @@ private:
 
     std::string cur_filename;
     std::string cur_filepath;
+
+
+    EditMode edit_mode;
 private slots:
     void save();
     void open();
     void saveas();
     void new_level();
+    void setPortalMode();
+    void setAddMode();
 };
 #endif // MAINWINDOW_H

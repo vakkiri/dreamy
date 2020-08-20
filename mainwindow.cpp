@@ -2,6 +2,8 @@
 #include <fstream>
 #include <cstring>
 #include <QFileDialog>
+#include <QToolBar>
+#include <QIcon>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "widgets/mainwidget.h"
@@ -18,8 +20,17 @@ MainWindow::MainWindow(QWidget *parent)
     world = main_widget->getWorld();
 
     setCentralWidget(main_widget);
-    addToolBar("Toolbar");
 
+    // Toolbar
+    QToolBar *toolbar = new QToolBar();
+    QIcon placementIcon = QIcon(QString("assets/icons/placement.png"));
+    QIcon portalIcon = QIcon(QString("assets/icons/portal.png"));
+    toolbar->addAction(placementIcon, QString("Objects"), this, &MainWindow::setAddMode);
+    toolbar->addAction(portalIcon, QString("Portals"), this, &MainWindow::setPortalMode);
+
+    addToolBar(toolbar);
+
+    // File path
     cur_filename = "unnamed.lvl";
     cur_filepath = "./";
 
@@ -51,6 +62,7 @@ MainWindow::MainWindow(QWidget *parent)
     file_menu->addAction(save_action);
     file_menu->addAction(saveas_action);
 
+    edit_mode = ADD_MODE;
 }
 
 MainWindow::~MainWindow()
@@ -105,10 +117,14 @@ void MainWindow::open() {
 
                 new_asset.type = tile.type;
 
-
-                world->addAsset(new_asset);
+                if (tile.index != 0) {
+                    world->addAsset(new_asset);
+                } else {
+                    std::cout << "not adding 0 tile" << std::endl;
+                }
                 cur += sizeof(tile);
             } else if (val == 2) {      // player
+                std::cout << "PLAYER" << std::endl;
                 ObjectSavedAsset player;
                 std::memcpy(&player, cur, sizeof(player));
 
@@ -124,7 +140,7 @@ void MainWindow::open() {
                 world->addAsset(new_asset);
 
                 cur += sizeof(player);
-            } else if (val == 3 || val == 4) {      // monster
+            } else if (val >= 3 && val <= 100) {      // monster
                 ObjectSavedAsset monster;
                 std::memcpy(&monster, cur, sizeof(monster));
 
@@ -139,6 +155,21 @@ void MainWindow::open() {
 
                 world->addAsset(new_asset);
                 cur += sizeof(monster);
+            } else if (val >= 101 && val <= 301) {
+                ObjectSavedAsset scenery;
+                std::memcpy(&scenery, cur, sizeof(scenery));
+
+                new_asset.group = "scenery";
+                new_asset.x = scenery.x;
+                new_asset.y = scenery.y;
+                new_asset.t = editor_assets.get_assets("scenery")[val-101].t;
+                new_asset.s = editor_assets.get_assets("scenery")[val-101].s;
+                new_asset.w = editor_assets.get_assets("scenery")[val-101].w;
+                new_asset.h = editor_assets.get_assets("scenery")[val-101].h;
+                new_asset.type = scenery.type;
+
+                world->addAsset(new_asset);
+                cur += sizeof(scenery);
             } else {
                 std::cout << "Unkown object type: " << val << std::endl;
                 break;
@@ -150,6 +181,7 @@ void MainWindow::open() {
     } catch(std::ofstream::failure e) {
         std::cout << "Couldn't open file to save: " << e.what() << std::endl;
     }
+    world->updateSurface();
 }
 
 
@@ -170,7 +202,7 @@ void MainWindow::saveFile(std::string path) {
 
             file.write((char*) &assetinfo, sizeof(assetinfo));
 
-            if (asset.type == 0 || asset.type == 1) {
+            if (asset.group == "tiles") {
                 // the index of a tile is its position in the tilemap, where tiles fit in 16px slots
                 int16_t tile_index = int16_t(asset.s * editor_assets.get_image(asset.group).width() / 16.f);
                 file.write((char*) &tile_index, sizeof(int16_t));
@@ -193,3 +225,12 @@ void MainWindow::saveas() {
     saveFile(file_name.toStdString());
 }
 
+void MainWindow::setAddMode() {
+    edit_mode = ADD_MODE;
+    std::cout << "ADD MODE" << std::endl;
+}
+
+void MainWindow::setPortalMode() {
+    edit_mode = PORTAL_MODE;
+    std::cout << "PORTAL MODE" << std::endl;
+}

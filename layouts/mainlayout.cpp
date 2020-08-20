@@ -25,6 +25,7 @@ MainLayout::MainLayout()
     asset_selector = new QComboBox();
     asset_selector->addItem("Tiles");
     asset_selector->addItem("Objects");
+    asset_selector->addItem("Scenery");
     quantize_slider = new QSlider(Qt::Orientation::Horizontal);
     quantize_slider->setTickInterval(1);
     quantize_slider->setMaximum(32);
