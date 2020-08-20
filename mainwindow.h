@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <string>
+#include "types/types.h"
 
 class QMenu;
 class QAction;
@@ -13,11 +14,6 @@ class WorldWidget;
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
-
-enum EditMode {
-    ADD_MODE,
-    PORTAL_MODE
-};
 
 class MainWindow : public QMainWindow
 {
@@ -44,8 +40,6 @@ private:
     std::string cur_filename;
     std::string cur_filepath;
 
-
-    EditMode edit_mode;
 private slots:
     void save();
     void open();

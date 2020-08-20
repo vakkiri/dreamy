@@ -31,6 +31,7 @@ WorldWidget::WorldWidget()
     add_solid = true;
     view_solid = true;
     current_layer = 0;
+    edit_mode = ADD_MODE;
     setMouseTracking(true);
 }
 
@@ -284,14 +285,24 @@ void WorldWidget::updateSurface() {
     update();
 }
 
+void WorldWidget::mousePressPortal(QMouseEvent *event) {
+    ;
+}
+
 void WorldWidget::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::MiddleButton) {
         middle_click = true;
+    } else if (edit_mode == PORTAL_MODE) {
+        mousePressPortal(event);
     }
     event->accept();
 }
 
-void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
+void WorldWidget::mouseReleasePortal(QMouseEvent *event) {
+    // TODO
+}
+
+void WorldWidget::mouseReleaseAdd(QMouseEvent *event) {
     float x = event->x() / scale;
     float y = event->y() / scale;
     x -= tx;
@@ -335,6 +346,14 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
         }
     } else if (event->button() == Qt::MiddleButton) {
         middle_click = false;
+    }
+}
+
+void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
+    if (edit_mode == ADD_MODE) {
+        mouseReleaseAdd(event);
+    } else if (edit_mode == PORTAL_MODE) {
+        mouseReleasePortal(event);
     }
 }
 
@@ -425,4 +444,8 @@ void WorldWidget::clearAssets() {
 void WorldWidget::addAsset(AssetInstance asset) {
     assets.push_back(asset);
     //updateSurface();
+}
+
+void WorldWidget::setEditMode(EditMode new_mode) {
+    edit_mode = new_mode;
 }

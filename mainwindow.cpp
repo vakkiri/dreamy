@@ -61,8 +61,6 @@ MainWindow::MainWindow(QWidget *parent)
     file_menu->addAction(open_action);
     file_menu->addAction(save_action);
     file_menu->addAction(saveas_action);
-
-    edit_mode = ADD_MODE;
 }
 
 MainWindow::~MainWindow()
@@ -226,11 +224,9 @@ void MainWindow::saveas() {
 }
 
 void MainWindow::setAddMode() {
-    edit_mode = ADD_MODE;
-    std::cout << "ADD MODE" << std::endl;
+    world->setEditMode(ADD_MODE);
 }
 
 void MainWindow::setPortalMode() {
-    edit_mode = PORTAL_MODE;
-    std::cout << "PORTAL MODE" << std::endl;
+    world->setEditMode(PORTAL_MODE);
 }

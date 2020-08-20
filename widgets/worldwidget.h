@@ -28,7 +28,10 @@ public:
     void clearAssets();
     void addAsset(AssetInstance asset);
     void updateSurface();
-
+    void setEditMode(EditMode new_mode);
+    void mousePressPortal(QMouseEvent *event);
+    void mouseReleasePortal(QMouseEvent *event);
+    void mouseReleaseAdd(QMouseEvent *event);
 protected:
     void initializeGL() override;
     void paintGL() override;
@@ -83,6 +86,8 @@ private:
     int current_layer;
 
     void checkError(std::string action);
+    EditMode edit_mode;
+
 public slots:
     void updateAddSolid(int state);
     void updateViewSolid(int state);

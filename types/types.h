@@ -4,6 +4,11 @@
 #include <vector>
 #include <string>
 
+enum EditMode {
+    ADD_MODE,
+    PORTAL_MODE
+};
+
 struct TileInfo {
     float s;
     float t;
