@@ -1,0 +1,8 @@
+#version 330
+uniform mat4 pcMatrix;
+in vec2 vertexPos;
+
+void main() {
+	gl_Position = pcMatrix * vec4( vertexPos.x, vertexPos.y, 0.0, 1.0 );
+}
+

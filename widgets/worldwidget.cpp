@@ -13,6 +13,7 @@
 
 #define VERTEX_POS 0
 #define TEX_POS 1
+#define COLOUR_VERTEX_POS 2
 
 WorldWidget::WorldWidget()
 {
@@ -31,6 +32,7 @@ WorldWidget::WorldWidget()
     add_solid = true;
     view_solid = true;
     current_layer = 0;
+    adding_portal = false;
     edit_mode = ADD_MODE;
     setMouseTracking(true);
 }
@@ -41,6 +43,7 @@ WorldWidget::~WorldWidget() {
         delete tex.second;
     }
     vbo.destroy();
+    colour_vbo.destroy();
 }
 
 void WorldWidget::setCursorWidget(CursorWidget *widget) {
@@ -61,13 +64,23 @@ void WorldWidget::initializeGL() {
     vbo.create();
     checkError("Creating vbo");
 
+    colour_vbo = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+    colour_vbo.create();
+    checkError("Creating colour vbo");
+
     vertex_shader = new QOpenGLShader(QOpenGLShader::Vertex, this);
     fragment_shader = new QOpenGLShader(QOpenGLShader::Fragment, this);
+    coloured_vertex_shader = new QOpenGLShader(QOpenGLShader::Vertex, this);
+    coloured_fragment_shader = new QOpenGLShader(QOpenGLShader::Fragment, this);
     checkError("Creating shaders");
 
     vertex_shader->compileSourceFile(QString("shaders/textured_rect_shader.glvs"));
     checkError("Compiling vertex shader");
     fragment_shader->compileSourceFile(QString("shaders/textured_rect_shader.glfs"));
+    checkError("Compiling fragment shader");
+    coloured_vertex_shader->compileSourceFile(QString("shaders/coloured_rect_shader.glvs"));
+    checkError("Compiling vertex shader");
+    coloured_fragment_shader->compileSourceFile(QString("shaders/coloured_rect_shader.glfs"));
     checkError("Compiling fragment shader");
 
     program = new QOpenGLShaderProgram();
@@ -77,12 +90,27 @@ void WorldWidget::initializeGL() {
     program->bindAttributeLocation("inTexCoord", TEX_POS);
     program->link();
     checkError("Linking program");
-
     program->bind();
+
+
     matrix.setToIdentity();
     matrix.ortho(0, this->width(), this->height(), 0, 1.0, -1.0);
     matrix.scale(scale);
     program->setUniformValue("pcMatrix", matrix);
+    program->setUniformValue("texUnit", 0);
+    program->setUniformValue("solid", true);
+    checkError("Setting matrix uniform");
+
+    colour_program = new QOpenGLShaderProgram();
+    colour_program->addShader(coloured_vertex_shader);
+    colour_program->addShader(coloured_fragment_shader);
+    colour_program->bindAttributeLocation("cvertexPos", COLOUR_VERTEX_POS);
+    colour_program->link();
+    checkError("Linking program");
+
+    colour_program->bind();
+    colour_program->setUniformValue("cpcMatrix", matrix);
+    colour_program->setUniformValue("vcolor", 1.f, 1.f, 1.f, 1.f);
     checkError("Setting matrix uniform");
 
     for (auto asset : editor_assets.get_assets()) {
@@ -91,8 +119,7 @@ void WorldWidget::initializeGL() {
         textures[asset.first] = new_tex;
     }
 
-    program->setUniformValue("texUnit", 0);
-    program->setUniformValue("solid", true);
+
     checkError("Creating tile");
 
     checkError("Initializing tiles");
@@ -102,6 +129,7 @@ void WorldWidget::initBuffers()
 {
     QVector<float> vertex_data;
     QVector<float> vertex_data_solid;
+    QVector<float> portal_vertex_data;
     QOpenGLTexture* bg_texture = textures["background"];
 
     float bgx = (width() / (2 * scale)) - (bg_texture->width() / 2) - tx;
@@ -202,11 +230,31 @@ void WorldWidget::initBuffers()
     vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
     vbo.allocate(vertex_data.constData(), vertex_data.count() * sizeof(float));
 
+    program->bind();
     program->enableAttributeArray(VERTEX_POS);
     program->setAttributeBuffer(VERTEX_POS, GL_FLOAT, 2 * sizeof(float), 2, 4 * sizeof(float));
 
     program->enableAttributeArray(TEX_POS);
     program->setAttributeBuffer(TEX_POS, GL_FLOAT, 0, 2, 4 * sizeof(float));
+
+    // PORTAL DATA
+    for (auto p : portals) {
+        portal_vertex_data.push_back(p.x);
+        portal_vertex_data.push_back(p.y);
+        portal_vertex_data.push_back(p.x + p.w);
+        portal_vertex_data.push_back(p.y);
+        portal_vertex_data.push_back(p.x + p.w);
+        portal_vertex_data.push_back(p.y + p.h);
+        portal_vertex_data.push_back(p.x);
+        portal_vertex_data.push_back(p.y + p.h);
+    }
+
+    colour_program->bind();
+    colour_vbo.bind();
+    colour_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    colour_vbo.allocate(portal_vertex_data.constData(), portal_vertex_data.count() * sizeof(float));
+    colour_program->enableAttributeArray(COLOUR_VERTEX_POS);
+    colour_program->setAttributeBuffer(COLOUR_VERTEX_POS, GL_FLOAT, 0, 2, 2 * sizeof(float));
 }
 
 
@@ -217,13 +265,20 @@ void WorldWidget::resizeGL(int w, int h)
     matrix.setToIdentity();
     matrix.ortho(0, w, h, 0, 1.0, -1.0);
     matrix.scale(scale);
+    colour_program->bind();
+    colour_program->setUniformValue("cpcMatrix", matrix);
+    program->bind();
     program->setUniformValue("pcMatrix", matrix);
+
     checkError("Setting matrix uniform");
 }
 
 void WorldWidget::paintGL()
 {
     std::string last_group = "background";
+
+    program->bind();
+
     ogl->glClear(GL_COLOR_BUFFER_BIT);
     //background
     textures["background"]->bind();
@@ -254,6 +309,12 @@ void WorldWidget::paintGL()
         if (assets.size() + num_cursor_tiles - i < num_solid_tiles && view_solid) {
             program->setUniformValue("solid", true);
         }
+
+        glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
+    }
+
+    colour_program->bind();
+    for (unsigned int i = 0; i < portals.size(); ++i) {
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
 
@@ -281,12 +342,21 @@ void WorldWidget::updateSurface() {
     matrix.translate(QVector3D(tx, ty, 0));
     program->bind();
     program->setUniformValue("pcMatrix", matrix);
+    colour_program->bind();
+    colour_program->setUniformValue("cpcMatrix", matrix);
     checkError("Setting matrix uniform");
     update();
 }
 
 void WorldWidget::mousePressPortal(QMouseEvent *event) {
-    ;
+    float x = event->x() / scale;
+    float y = event->y() / scale;
+    x -= tx;
+    y -= ty;
+    if (event->button() == Qt::LeftButton) {
+        portal_start = QPoint(x, y);
+        adding_portal = true;
+    }
 }
 
 void WorldWidget::mousePressEvent(QMouseEvent *event) {
@@ -299,7 +369,21 @@ void WorldWidget::mousePressEvent(QMouseEvent *event) {
 }
 
 void WorldWidget::mouseReleasePortal(QMouseEvent *event) {
-    // TODO
+    float x = event->x() / scale;
+    float y = event->y() / scale;
+    x -= tx;
+    y -= ty;
+    if (event->button() == Qt::LeftButton) {
+        portal_end = QPoint(x, y);
+        float startx, starty, endx, endy;
+        startx = std::min(portal_start.x(), portal_end.x());
+        endx = std::max(portal_start.x(), portal_end.x());
+        starty = std::min(portal_start.y(), portal_end.y());
+        endy = std::max(portal_start.y(), portal_end.y());
+        float w = endx - startx;
+        float h = endy - starty;
+        portals.push_back(Portal{startx, starty, w, h, 0, 0, 0});
+    }
 }
 
 void WorldWidget::mouseReleaseAdd(QMouseEvent *event) {
@@ -344,8 +428,6 @@ void WorldWidget::mouseReleaseAdd(QMouseEvent *event) {
                 break;
             }
         }
-    } else if (event->button() == Qt::MiddleButton) {
-        middle_click = false;
     }
 }
 
@@ -355,6 +437,11 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
     } else if (edit_mode == PORTAL_MODE) {
         mouseReleasePortal(event);
     }
+    if (event->button() == Qt::MiddleButton) {
+            middle_click = false;
+    }
+
+    adding_portal = false;  // make sure we unset this even if something weird happened and we weren't in portal mode
 }
 
 void WorldWidget::scaleBy(float amt) {

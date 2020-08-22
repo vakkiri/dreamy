@@ -46,6 +46,8 @@ private:
     void initBuffers();
     void scaleBy(float amt);
 
+    std::vector<Portal> portals;
+
     int snap;
 
     CursorWidget *cursor_widget;
@@ -53,9 +55,13 @@ private:
     QOpenGLFunctions_3_3_Core *ogl;
     std::unordered_map<std::string, QOpenGLTexture*> textures;
     QOpenGLBuffer vbo;
+    QOpenGLBuffer colour_vbo;
     QOpenGLShaderProgram *program;
+    QOpenGLShaderProgram *colour_program;
     QOpenGLShader *vertex_shader;
     QOpenGLShader *fragment_shader;
+    QOpenGLShader *coloured_vertex_shader;
+    QOpenGLShader *coloured_fragment_shader;
 
     std::vector<AssetInstance> assets;
 
@@ -74,6 +80,10 @@ private:
     float mousey;
     float last_real_mousex;
     float last_real_mousey;
+
+    QPoint portal_start;
+    QPoint portal_end;
+    bool adding_portal;
 
     bool middle_click;
 

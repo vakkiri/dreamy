@@ -9,6 +9,16 @@ enum EditMode {
     PORTAL_MODE
 };
 
+struct Portal {
+    float x;
+    float y;
+    float w;
+    float h;
+    float destx;
+    float desty;
+    float destlevel;
+};
+
 struct TileInfo {
     float s;
     float t;

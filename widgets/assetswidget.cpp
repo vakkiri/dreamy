@@ -238,8 +238,6 @@ void AssetsWidget::selectAsset(int x, int y) {
             selection.h = asset.h;
             selection.group = selected_group;
             selection.type = asset.type;
-            std::cout << "type: " << selection.type;
-            std::cout << "group: " << selection.group;
             break;
         }
     }

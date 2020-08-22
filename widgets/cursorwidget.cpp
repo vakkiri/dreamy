@@ -293,7 +293,6 @@ void CursorWidget::resetCursor(Asset& asset) {
     float s = asset.s;
     float t = asset.t;
 
-    std::cout << s << "," << t << std::endl;
     assets.clear();
     // imagine not having a copy constructor...
     assets.push_back(AssetInstance{asset.group, 0, 0, s, t, asset.w, asset.h, asset.type});
