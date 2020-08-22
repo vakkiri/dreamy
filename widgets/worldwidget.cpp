@@ -5,6 +5,9 @@
 #include <QOpenGLShader>
 #include <QOpenGLTexture>
 #include <QMouseEvent>
+#include <QLineEdit>
+#include <QFormLayout>
+#include <QDialogButtonBox>
 #include "worldwidget.h"
 #include "cursorwidget.h"
 #include "const.h"
@@ -14,6 +17,42 @@
 #define VERTEX_POS 0
 #define TEX_POS 1
 #define COLOUR_VERTEX_POS 2
+
+PortalDialogue::PortalDialogue() {
+    layout = new QFormLayout(this);
+
+    QLineEdit *dest_level = new QLineEdit(this);
+    QString level_label = QString("Destination Level");
+    fields << dest_level;
+    layout->addRow(level_label, dest_level);
+
+    QLineEdit *dest_x = new QLineEdit(this);
+    QString x_label = QString("Destination X");
+    fields << dest_x;
+    layout->addRow(x_label, dest_x);
+
+    QLineEdit *dest_y = new QLineEdit(this);
+    QString y_label = QString("Destination Y");
+    fields << dest_y;
+    layout->addRow(y_label, dest_y);
+
+    buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+                               Qt::Horizontal, this);
+    layout->addRow(buttons);
+
+    connect(buttons, SIGNAL(accepted()), this, SLOT(accept()));
+    connect(buttons, SIGNAL(rejected()), this, SLOT(reject()));
+}
+
+PortalDialogue::~PortalDialogue() {
+    while (!fields.empty()) {
+        delete fields.back();
+        fields.pop_back();
+    }
+
+    delete layout;
+    delete buttons;
+}
 
 WorldWidget::WorldWidget()
 {
@@ -110,7 +149,6 @@ void WorldWidget::initializeGL() {
 
     colour_program->bind();
     colour_program->setUniformValue("cpcMatrix", matrix);
-    colour_program->setUniformValue("vcolor", 1.f, 1.f, 1.f, 1.f);
     checkError("Setting matrix uniform");
 
     for (auto asset : editor_assets.get_assets()) {
@@ -314,6 +352,7 @@ void WorldWidget::paintGL()
     }
 
     colour_program->bind();
+    colour_program->setUniformValue("vcolor", 0.7f, 0.1f, 0.3f, 0.5f);
     for (unsigned int i = 0; i < portals.size(); ++i) {
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
@@ -382,7 +421,12 @@ void WorldWidget::mouseReleasePortal(QMouseEvent *event) {
         endy = std::max(portal_start.y(), portal_end.y());
         float w = endx - startx;
         float h = endy - starty;
-        portals.push_back(Portal{startx, starty, w, h, 0, 0, 0});
+
+        PortalDialogue dialogue;
+        if (dialogue.exec() == QDialog::Accepted) {
+            portals.push_back(Portal{startx, starty, w, h, 0, 0, 0});
+            updateSurface();
+        }
     }
 }
 

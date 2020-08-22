@@ -4,16 +4,32 @@
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLBuffer>
+#include <QDialog>
 #include <QMatrix4x4>
 #include <vector>
 #include <unordered_map>
-
+#include <QList>
 #include "../types/types.h"
 
 class CursorWidget;
 class QOpenGLTexture;
 class QOpenGLShaderProgram;
 class QOpenGLShader;
+class QLineEdit;
+class QDialogButtonBox;
+class QFormLayout;
+
+class PortalDialogue : public QDialog {
+    Q_OBJECT
+public:
+    PortalDialogue();
+    ~PortalDialogue();
+    QString execDialogue();
+protected:
+    QList<QLineEdit *> fields;
+    QFormLayout *layout;
+    QDialogButtonBox *buttons;
+};
 
 class WorldWidget : public QOpenGLWidget
 {
