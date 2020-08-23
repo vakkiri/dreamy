@@ -112,6 +112,7 @@ void MainWindow::open() {
                 new_asset.s = editor_assets.get_assets("tiles")[tile.index].s;
                 new_asset.w = editor_assets.get_assets("tiles")[tile.index].w;
                 new_asset.h = editor_assets.get_assets("tiles")[tile.index].h;
+                QList<QLineEdit *> fields;
 
                 new_asset.type = tile.type;
 
@@ -153,7 +154,7 @@ void MainWindow::open() {
 
                 world->addAsset(new_asset);
                 cur += sizeof(monster);
-            } else if (val >= 101 && val <= 301) {
+            } else if (val >= 101 && val < 300) {
                 ObjectSavedAsset scenery;
                 std::memcpy(&scenery, cur, sizeof(scenery));
 
@@ -168,6 +169,13 @@ void MainWindow::open() {
 
                 world->addAsset(new_asset);
                 cur += sizeof(scenery);
+            } else if (val == 300) {
+                std::cout << "PORTAL" << std::endl;
+                Portal p;
+                cur += sizeof(int16_t);
+                memcpy(&p, cur, sizeof(Portal));
+                world->addPortal(p);
+                cur += sizeof(Portal);
             } else {
                 std::cout << "Unkown object type: " << val << std::endl;
                 break;
@@ -205,6 +213,11 @@ void MainWindow::saveFile(std::string path) {
                 int16_t tile_index = int16_t(asset.s * editor_assets.get_image(asset.group).width() / 16.f);
                 file.write((char*) &tile_index, sizeof(int16_t));
             }
+        }
+        for (auto portal : world->getPortals()) {
+            int16_t type = 300;
+            file.write((char*) &type, sizeof(int16_t));
+            file.write((char*) &portal, sizeof(Portal));
         }
         file.write((char*) &end_marker, sizeof(end_marker));
 

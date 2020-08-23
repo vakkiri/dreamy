@@ -13,6 +13,7 @@
 #include "const.h"
 #include "../util/assetcontainer.h"
 #include "../util/utils.h"
+#include "../layouts/mainlayout.h"
 
 #define VERTEX_POS 0
 #define TEX_POS 1
@@ -21,19 +22,16 @@
 PortalDialogue::PortalDialogue() {
     layout = new QFormLayout(this);
 
-    QLineEdit *dest_level = new QLineEdit(this);
+    dest_level = new QLineEdit(this);
     QString level_label = QString("Destination Level");
-    fields << dest_level;
     layout->addRow(level_label, dest_level);
 
-    QLineEdit *dest_x = new QLineEdit(this);
+    dest_x = new QLineEdit(this);
     QString x_label = QString("Destination X");
-    fields << dest_x;
     layout->addRow(x_label, dest_x);
 
-    QLineEdit *dest_y = new QLineEdit(this);
+    dest_y = new QLineEdit(this);
     QString y_label = QString("Destination Y");
-    fields << dest_y;
     layout->addRow(y_label, dest_y);
 
     buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
@@ -45,13 +43,23 @@ PortalDialogue::PortalDialogue() {
 }
 
 PortalDialogue::~PortalDialogue() {
-    while (!fields.empty()) {
-        delete fields.back();
-        fields.pop_back();
-    }
-
+    delete dest_x;
+    delete dest_y;
+    delete dest_level;
     delete layout;
     delete buttons;
+}
+
+float PortalDialogue::targetx() {
+    return dest_x->text().toFloat();
+}
+
+float PortalDialogue::targety() {
+    return dest_y->text().toFloat();
+}
+
+int PortalDialogue::target_level() {
+    return dest_level->text().toInt();
 }
 
 WorldWidget::WorldWidget()
@@ -424,8 +432,18 @@ void WorldWidget::mouseReleasePortal(QMouseEvent *event) {
 
         PortalDialogue dialogue;
         if (dialogue.exec() == QDialog::Accepted) {
-            portals.push_back(Portal{startx, starty, w, h, 0, 0, 0});
+            std::cout << dialogue.targetx() << " : " << dialogue.targety() << std::endl;
+            portals.push_back(Portal{startx, starty, w, h, dialogue.targetx(), dialogue.targety(), dialogue.target_level()});
             updateSurface();
+        }
+    } else if (event->button() == Qt::RightButton) {
+        for (unsigned int i = 0; i < portals.size(); ++i) {
+            if (clickInRect(x, y, portals[i].x, portals[i].y, portals[i].w, portals[i].h)) {
+                portals[i] = portals.back();
+                portals.pop_back();
+                updateSurface();
+                break;
+            }
         }
     }
 }
@@ -482,25 +500,14 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
         mouseReleasePortal(event);
     }
     if (event->button() == Qt::MiddleButton) {
-            middle_click = false;
+        middle_click = false;
     }
 
     adding_portal = false;  // make sure we unset this even if something weird happened and we weren't in portal mode
 }
 
 void WorldWidget::scaleBy(float amt) {
-    float prex = mousex / scale;
-    float prey = mousey / scale;
-    float postx;
-    float posty;
-
     scale += amt;
-
-    postx = mousex / scale;
-    posty = mousey / scale;
-
-    tx += (postx - prex) / (scale-amt);
-    ty += (posty - prey) / (scale-amt);
 
     updateSurface();
 }
@@ -529,8 +536,8 @@ void WorldWidget::wheelEvent(QWheelEvent *event) {
 void WorldWidget::mouseMoveEvent(QMouseEvent *event) {
     float x = event->x() / scale;
     float y = event->y() / scale;
-    mousex = x - tx * scale;
-    mousey = y - ty * scale;
+    mousex = x - tx;
+    mousey = y - ty;
     previewx = x;
     previewy = y;
 
@@ -542,6 +549,7 @@ void WorldWidget::mouseMoveEvent(QMouseEvent *event) {
     last_real_mousex = event->x();
     last_real_mousey = event->y();
 
+    parent_layout->setMouseLabel(mousex, mousey);
     updateSurface();
     event->accept();
 }
@@ -568,15 +576,26 @@ std::vector<AssetInstance>& WorldWidget::getAssets() {
     return assets;
 }
 
+std::vector<Portal>& WorldWidget::getPortals() {
+    return portals;
+}
+
 void WorldWidget::clearAssets() {
     assets.clear();
 }
 
 void WorldWidget::addAsset(AssetInstance asset) {
     assets.push_back(asset);
-    //updateSurface();
+}
+
+void WorldWidget::addPortal(Portal portal) {
+    portals.push_back(portal);
 }
 
 void WorldWidget::setEditMode(EditMode new_mode) {
     edit_mode = new_mode;
+}
+
+void WorldWidget::setParentLayout(MainLayout *layout) {
+    parent_layout = layout;
 }

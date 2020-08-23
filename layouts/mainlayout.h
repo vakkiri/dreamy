@@ -26,6 +26,7 @@ public:
     virtual ~MainLayout();
     WorldWidget* getWorld();
 
+    void setMouseLabel(float x, float y);
 private:
     QVBoxLayout *center_layout;
     LeftLayout *left_layout;
@@ -48,6 +49,7 @@ private:
     QSlider *layer_slider;
     QLabel *layer_label;
     QHBoxLayout *center_slider_layout;
+    QLabel *mouse_label;
 
 public slots:
     void updateQuantizeLabel(int value);

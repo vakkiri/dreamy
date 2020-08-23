@@ -7,7 +7,6 @@
 
 class QMenu;
 class QAction;
-
 class MainWidget;
 class WorldWidget;
 
@@ -22,6 +21,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void set_mouse_pos(float x, float y);
 
 private:
     void saveFile(std::string path);

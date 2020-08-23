@@ -1,9 +1,11 @@
 #include <iostream>
+#include <string>
 #include <QSlider>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QString>
 
 #include "mainlayout.h"
 #include "leftlayout.h"
@@ -81,10 +83,15 @@ MainLayout::MainLayout()
     center_slider_layout->addWidget(layer_label);
     center_slider_layout->addWidget(layer_slider);
 
+    mouse_label = new QLabel(QString("0,0"));
+    mouse_label->setFixedHeight(16);
+
+    world_widget->setParentLayout(this);
     center_layout->addLayout(center_slider_layout);
     center_layout->addWidget(add_solid_box);
     center_layout->addWidget(view_solid_box);
     center_layout->addWidget(world_widget);
+    center_layout->addWidget(mouse_label);
 
     connect(main_quantize_slider, &QSlider::valueChanged, world_widget, &WorldWidget::setSnap);
     connect(main_quantize_slider, SIGNAL(valueChanged(int)), this, SLOT (updateMainQuantizeLabel(int)));
@@ -128,4 +135,9 @@ void MainLayout::updateLayerLabel(int value) {
 
 WorldWidget* MainLayout::getWorld() {
     return world_widget;
+}
+
+void MainLayout::setMouseLabel(float x, float y) {
+    std::string s = "x: " + std::to_string(int(x)) + "    y: " + std::to_string(int(y));
+    mouse_label->setText(QString(s.c_str()));
 }

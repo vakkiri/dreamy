@@ -16,7 +16,7 @@ struct Portal {
     float h;
     float destx;
     float desty;
-    float destlevel;
+    int destlevel;
 };
 
 struct TileInfo {

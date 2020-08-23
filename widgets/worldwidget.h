@@ -18,6 +18,8 @@ class QOpenGLShader;
 class QLineEdit;
 class QDialogButtonBox;
 class QFormLayout;
+class QMainLayout;
+class MainLayout;
 
 class PortalDialogue : public QDialog {
     Q_OBJECT
@@ -25,8 +27,13 @@ public:
     PortalDialogue();
     ~PortalDialogue();
     QString execDialogue();
+    float targetx();
+    float targety();
+    int target_level();
 protected:
-    QList<QLineEdit *> fields;
+    QLineEdit *dest_level;
+    QLineEdit *dest_x;
+    QLineEdit *dest_y;
     QFormLayout *layout;
     QDialogButtonBox *buttons;
 };
@@ -41,13 +48,17 @@ public:
     void setCursorWidget(CursorWidget *widget);
     void setSnap(int snap);
     std::vector<AssetInstance>& getAssets();
+    std::vector<Portal>& getPortals();
     void clearAssets();
     void addAsset(AssetInstance asset);
+    void addPortal(Portal portal);
     void updateSurface();
     void setEditMode(EditMode new_mode);
     void mousePressPortal(QMouseEvent *event);
     void mouseReleasePortal(QMouseEvent *event);
     void mouseReleaseAdd(QMouseEvent *event);
+    void setParentLayout(MainLayout *layout);
+
 protected:
     void initializeGL() override;
     void paintGL() override;
@@ -56,7 +67,7 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
-
+    MainLayout *parent_layout;
 
 private:
     void initBuffers();
