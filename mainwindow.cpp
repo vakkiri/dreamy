@@ -10,6 +10,7 @@
 #include "widgets/cursorwidget.h"
 #include "util/assetcontainer.h"
 #include "widgets/worldwidget.h"
+#include "glo.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -71,6 +72,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::new_level() {
     world->clearAssets();
+    tileset = 0;
 }
 
 void MainWindow::open() {
@@ -175,6 +177,7 @@ void MainWindow::open() {
                 cur += sizeof(int16_t);
                 memcpy(&p, cur, sizeof(Portal));
                 world->addPortal(p);
+                std::cout << sizeof(Portal) << std::endl;
                 cur += sizeof(Portal);
             } else {
                 std::cout << "Unkown object type: " << val << std::endl;

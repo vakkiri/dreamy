@@ -9,6 +9,7 @@
 #include "const.h"
 #include "../util/assetcontainer.h"
 #include "../util/utils.h"
+#include "../glo.h"
 
 #define VERTEX_POS 0
 #define TEX_POS 1
@@ -123,26 +124,35 @@ void CursorWidget::initBuffers()
 
     /* add the actual tiles */
     for (unsigned int i = 0; i < assets.size(); ++i) {
+        float t;
+        // for tiles, the t value is based on tileset
+        if (assets[i].type == 0 || assets[i].type == 1) {
+            t = assets[i].t * tileset;
+        } else {
+            t = assets[i].t;
+        }
+
+
         ds = float(assets[i].w)/textures[assets[i].group]->width();
         dt = float(assets[i].h)/textures[assets[i].group]->height();
 
         vertex_data.push_back(assets[i].s);
-        vertex_data.push_back(assets[i].t);
+        vertex_data.push_back(t);
         vertex_data.push_back(assets[i].x);
         vertex_data.push_back(assets[i].y);
 
         vertex_data.push_back(assets[i].s + ds);
-        vertex_data.push_back(assets[i].t);
+        vertex_data.push_back(t);
         vertex_data.push_back(assets[i].x + assets[i].w);
         vertex_data.push_back(assets[i].y);
 
         vertex_data.push_back(assets[i].s + ds);
-        vertex_data.push_back(assets[i].t + dt);
+        vertex_data.push_back(t + dt);
         vertex_data.push_back(assets[i].x + assets[i].w);
         vertex_data.push_back(assets[i].y + assets[i].h);
 
         vertex_data.push_back(assets[i].s);
-        vertex_data.push_back(assets[i].t + dt);
+        vertex_data.push_back(t + dt);
         vertex_data.push_back(assets[i].x);
         vertex_data.push_back(assets[i].y + assets[i].h);
     }
@@ -272,7 +282,11 @@ void CursorWidget::mouseMoveEvent(QMouseEvent *event) {
     preview.x = x;
     preview.y = y;
     preview.s = asset.s;
-    preview.t = asset.t;
+    if (asset.type == 0 || asset.type == 1) {
+        preview.t = asset.t * tileset;
+    } else {
+        preview.t = asset.t;
+    }
     preview.w = asset.w;
     preview.h = asset.h;
     preview.group = asset.group;

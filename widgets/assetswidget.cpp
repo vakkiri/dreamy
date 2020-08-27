@@ -11,6 +11,7 @@
 #include "assetswidget.h"
 #include "cursorwidget.h"
 #include "const.h"
+#include "../glo.h"
 
 #define VERTEX_POS 0
 #define TEX_POS 1
@@ -91,30 +92,38 @@ void AssetsWidget::addAssetsToBuffer(QVector<float>& buffer, std::string group_n
     std::vector<Asset> assets = editor_assets.get_assets(group_name);
     float x = 0;
     float y = 0;
-
+    float t;
     QOpenGLTexture* tex = textures[group_name];
 
     for (auto asset : assets) {
         float ds = float(asset.w) / tex->width();
         float dt = float(asset.h) / tex->height();
 
+        // for tiles, the t value is based on tileset
+        if (asset.type == 0 || asset.type == 1) {
+            t = asset.t * tileset;
+        }
+        else {
+            t = asset.t;
+        }
+
         buffer.push_back(asset.s);
-        buffer.push_back(asset.t);
+        buffer.push_back(t);
         buffer.push_back(x);
         buffer.push_back(y);
 
         buffer.push_back(asset.s + ds);
-        buffer.push_back(asset.t);
+        buffer.push_back(t);
         buffer.push_back(x + asset.w);
         buffer.push_back(y);
 
         buffer.push_back(asset.s + ds);
-        buffer.push_back(asset.t + dt);
+        buffer.push_back(t + dt);
         buffer.push_back(x + asset.w);
         buffer.push_back(y + asset.h);
 
         buffer.push_back(asset.s);
-        buffer.push_back(asset.t + dt);
+        buffer.push_back(t + dt);
         buffer.push_back(x);
         buffer.push_back(y + asset.h);
 
@@ -223,14 +232,24 @@ void AssetsWidget::mouseReleaseEvent(QMouseEvent *event) {
 void AssetsWidget::selectAsset(int x, int y) {
     x /= scale;
     y /= scale;
-    x += width() / scale * floor(y / textures[selected_group]->height());
-    y = int(y) % textures[selected_group]->height();
+    if (selected_group == "tiles") {
+        x += width() / scale * floor(y / 16.f);
+        y = int(y) % 16;
+    } else {
+        x += width() / scale * floor(y / textures[selected_group]->height());
+        y = int(y) % textures[selected_group]->height();
+    }
 
     std::vector<Asset> assets = editor_assets.get_assets(selected_group);
     for (auto asset : assets) {
         // i guess this method of deletion doesn't actually maintain order lol oops
         float assetx = asset.s * editor_assets.get_image(asset.group).width();
-        float assety = asset.t * editor_assets.get_image(asset.group).height();
+        float assety;
+        if (asset.type == 0 || asset.type == 1) {
+            assety = 0;
+        } else {
+            assety = asset.t * editor_assets.get_image(asset.group).height();
+        }
         if (clickInRect(x, y, assetx, assety, asset.w, asset.h)) {
             selection.s = asset.s;
             selection.t = asset.t;

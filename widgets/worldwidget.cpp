@@ -14,6 +14,7 @@
 #include "../util/assetcontainer.h"
 #include "../util/utils.h"
 #include "../layouts/mainlayout.h"
+#include "../glo.h"
 
 #define VERTEX_POS 0
 #define TEX_POS 1
@@ -212,32 +213,41 @@ void WorldWidget::initBuffers()
         minx = std::min(minx, t.x);
         miny = std::min(miny, t.y);
     }
+
     for(auto asset : assets_to_add) {
         float x = asset.x + previewx - minx - tx;
         float y = asset.y + previewy - miny - ty;
         float ds = float(asset.w) / textures[asset.group]->width();
         float dt = float(asset.h) / textures[asset.group]->height();
-
+        float t;
         x = int(x) - (int(x) % snap);
         y = int(y) - (int(y) % snap);
 
+        // for tiles, the t value is based on tileset
+        if (asset.type == 0 || asset.type == 1) {
+            t = asset.t * tileset;
+        }
+        else {
+            t = asset.t;
+        }
+
         vertex_data.push_back(asset.s);
-        vertex_data.push_back(asset.t);
+        vertex_data.push_back(t);
         vertex_data.push_back(x);
         vertex_data.push_back(y);
 
         vertex_data.push_back(asset.s + ds);
-        vertex_data.push_back(asset.t);
+        vertex_data.push_back(t);
         vertex_data.push_back(x + asset.w);
         vertex_data.push_back(y);
 
         vertex_data.push_back(asset.s + ds);
-        vertex_data.push_back(asset.t + dt);
+        vertex_data.push_back(t + dt);
         vertex_data.push_back(x + asset.w);
         vertex_data.push_back(y + asset.h);
 
         vertex_data.push_back(asset.s);
-        vertex_data.push_back(asset.t + dt);
+        vertex_data.push_back(t + dt);
         vertex_data.push_back(x);
         vertex_data.push_back(y + asset.h);
     }
@@ -248,24 +258,33 @@ void WorldWidget::initBuffers()
         QVector<float> *vectorptr = &vertex_data;   // this is tech debt from when there were multiple vectors and i don't feel like fixing it atm
         float ds = float(assets[i].w) / textures[assets[i].group]->width();
         float dt = float(assets[i].h) / textures[assets[i].group]->height();
+        float t;
+
+        // for tiles, the t value is based on tileset
+        if (assets[i].type == 0 || assets[i].type == 1) {
+            t = assets[i].t * tileset;
+        }
+        else {
+            t = assets[i].t;
+        }
 
         vectorptr->push_back(assets[i].s);
-        vectorptr->push_back(assets[i].t);
+        vectorptr->push_back(t);
         vectorptr->push_back(assets[i].x);
         vectorptr->push_back(assets[i].y);
 
         vectorptr->push_back(assets[i].s + ds);
-        vectorptr->push_back(assets[i].t);
+        vectorptr->push_back(t);
         vectorptr->push_back(assets[i].x + assets[i].w);
         vectorptr->push_back(assets[i].y);
 
         vectorptr->push_back(assets[i].s + ds);
-        vectorptr->push_back(assets[i].t + dt);
+        vectorptr->push_back(t + dt);
         vectorptr->push_back(assets[i].x + assets[i].w);
         vectorptr->push_back(assets[i].y + assets[i].h);
 
         vectorptr->push_back(assets[i].s);
-        vectorptr->push_back(assets[i].t + dt);
+        vectorptr->push_back(t + dt);
         vectorptr->push_back(assets[i].x);
         vectorptr->push_back(assets[i].y + assets[i].h);
     }
