@@ -5,4 +5,4 @@
 
 #include "glo.h"
 
-int tileset = 1;
+int tileset = 0;

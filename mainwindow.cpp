@@ -103,7 +103,14 @@ void MainWindow::open() {
         while (val != -1) {
             AssetInstance new_asset;
 
-            if (val == 0 || val == 1) { // tile
+            if (val == -2) {
+                cur += sizeof(int16_t);
+                int16_t ts;
+                std::memcpy(&ts, cur, sizeof(int16_t));
+                tileset = ts;
+                cur += sizeof(int16_t);
+            }
+            else if (val == 0 || val == 1) { // tile
                 TileSavedAsset tile;
                 std::memcpy(&tile, cur, sizeof(tile));
 
@@ -203,6 +210,12 @@ void MainWindow::saveFile(std::string path) {
     try {
         file.open(path.c_str(), std::ios::out | std::ios::binary);
         int16_t end_marker = -1;
+
+        // -2 = tileset
+        int16_t type = -2;
+        int16_t ts = int16_t(tileset);
+        file.write((char*) &type, sizeof(int16_t));
+        file.write((char*) &ts, sizeof(int16_t));
 
         for (auto asset : assets) {
             assetinfo.type = int16_t(asset.type);
