@@ -40,6 +40,7 @@ private:
     QSlider *quantize_slider;
     QLabel *quantize_label;
 
+
     // center stuff
     WorldWidget *world_widget;
     QCheckBox *add_solid_box;
@@ -48,6 +49,8 @@ private:
     QLabel *main_quantize_label;
     QSlider *layer_slider;
     QLabel *layer_label;
+    QSlider *tileset_slider;
+    QLabel *tileset_label;
     QHBoxLayout *center_slider_layout;
     QLabel *mouse_label;
 
@@ -55,6 +58,7 @@ public slots:
     void updateQuantizeLabel(int value);
     void updateMainQuantizeLabel(int value);
     void updateLayerLabel(int value);
+    void updateTileset(int value);
 };
 
 #endif // MAINLAYOUT_H

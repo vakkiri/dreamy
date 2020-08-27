@@ -12,6 +12,7 @@
 #include "../widgets/cursorwidget.h"
 #include "../widgets/assetswidget.h"
 #include "../widgets/worldwidget.h"
+#include "../glo.h"
 
 #include <QLabel>
 
@@ -38,6 +39,7 @@ MainLayout::MainLayout()
     quantize_label = new QLabel();
     quantize_label->setText(QString("Snap: ") + QString::number(quantize_slider->value()));
     quantize_label->setFixedHeight(16);
+
     right_layout->addWidget(quantize_label);
     right_layout->addWidget(quantize_slider);
     right_layout->addWidget(cursor_widget);
@@ -72,6 +74,16 @@ MainLayout::MainLayout()
     layer_label->setText(QString("Layer: ") + QString::number(layer_slider->value()));
     layer_label->setFixedHeight(16);
 
+    tileset_slider = new QSlider(Qt::Orientation::Horizontal);
+    tileset_slider->setTickInterval(1);
+    tileset_slider->setMaximum(1);
+    tileset_slider->setMinimum(0);
+    tileset_slider->setValue(tileset);
+    tileset_label = new QLabel();
+    tileset_label->setText(QString("Tileset: ") + QString::number(tileset_slider->value()));
+    tileset_label->setFixedHeight(16);
+    tileset_slider->setFixedWidth(32);
+
     add_solid_box = new QCheckBox("Add &colliders", world_widget);
     view_solid_box = new QCheckBox("&View colliders", world_widget);
     add_solid_box->setChecked(true);
@@ -82,6 +94,8 @@ MainLayout::MainLayout()
     center_slider_layout->addWidget(main_quantize_slider);
     center_slider_layout->addWidget(layer_label);
     center_slider_layout->addWidget(layer_slider);
+    center_slider_layout->addWidget(tileset_label);
+    center_slider_layout->addWidget(tileset_slider);
 
     mouse_label = new QLabel(QString("0,0"));
     mouse_label->setFixedHeight(16);
@@ -97,6 +111,7 @@ MainLayout::MainLayout()
     connect(main_quantize_slider, SIGNAL(valueChanged(int)), this, SLOT (updateMainQuantizeLabel(int)));
     connect(layer_slider, SIGNAL(valueChanged(int)), this, SLOT (updateLayerLabel(int)));
     connect(layer_slider, SIGNAL(valueChanged(int)), world_widget, SLOT (updateCurrentLayer(int)));
+    connect(tileset_slider, SIGNAL(valueChanged(int)), this, SLOT (updateTileset(int)));
     connect(add_solid_box, SIGNAL(stateChanged(int)), world_widget, SLOT(updateAddSolid(int)));
     connect(view_solid_box, SIGNAL(stateChanged(int)), world_widget, SLOT(updateViewSolid(int)));
 
@@ -123,6 +138,11 @@ MainLayout::~MainLayout() {
 
 void MainLayout::updateQuantizeLabel(int value) {
     quantize_label->setText(QString("Snap: ") + QString::number(value));
+}
+
+void MainLayout::updateTileset(int value) {
+    tileset_label->setText(QString("Tileset: ") + QString::number(value));
+    tileset = value;
 }
 
 void MainLayout::updateMainQuantizeLabel(int value) {

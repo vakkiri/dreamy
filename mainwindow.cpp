@@ -132,7 +132,6 @@ void MainWindow::open() {
                 }
                 cur += sizeof(tile);
             } else if (val == 2) {      // player
-                std::cout << "PLAYER" << std::endl;
                 ObjectSavedAsset player;
                 std::memcpy(&player, cur, sizeof(player));
 
@@ -179,7 +178,6 @@ void MainWindow::open() {
                 world->addAsset(new_asset);
                 cur += sizeof(scenery);
             } else if (val == 300) {
-                std::cout << "PORTAL" << std::endl;
                 Portal p;
                 cur += sizeof(int16_t);
                 memcpy(&p, cur, sizeof(Portal));
