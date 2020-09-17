@@ -204,6 +204,43 @@ void WorldWidget::initBuffers()
     vertex_data.push_back(bgx);
     vertex_data.push_back(bgy + bg_texture->height());
 
+    // world assets
+    num_solid_tiles = 0;
+    for (unsigned int i = 0; i < assets.size(); ++i) {
+        QVector<float> *vectorptr = &vertex_data;   // this is tech debt from when there were multiple vectors and i don't feel like fixing it atm
+        float ds = float(assets[i].w) / textures[assets[i].group]->width();
+        float dt = float(assets[i].h) / textures[assets[i].group]->height();
+        float t;
+
+        // for tiles, the t value is based on tileset
+        if (assets[i].type == 0 || assets[i].type == 1) {
+            t = assets[i].t * tileset;
+        }
+        else {
+            t = assets[i].t;
+        }
+
+        vectorptr->push_back(assets[i].s);
+        vectorptr->push_back(t);
+        vectorptr->push_back(assets[i].x);
+        vectorptr->push_back(assets[i].y);
+
+        vectorptr->push_back(assets[i].s + ds);
+        vectorptr->push_back(t);
+        vectorptr->push_back(assets[i].x + assets[i].w);
+        vectorptr->push_back(assets[i].y);
+
+        vectorptr->push_back(assets[i].s + ds);
+        vectorptr->push_back(t + dt);
+        vectorptr->push_back(assets[i].x + assets[i].w);
+        vectorptr->push_back(assets[i].y + assets[i].h);
+
+        vectorptr->push_back(assets[i].s);
+        vectorptr->push_back(t + dt);
+        vectorptr->push_back(assets[i].x);
+        vectorptr->push_back(assets[i].y + assets[i].h);
+    }
+
     // cursor preview
     std::vector<AssetInstance>& assets_to_add = cursor_widget->getAssets();
     num_cursor_tiles = assets_to_add.size();
@@ -250,43 +287,6 @@ void WorldWidget::initBuffers()
         vertex_data.push_back(t + dt);
         vertex_data.push_back(x);
         vertex_data.push_back(y + asset.h);
-    }
-
-    // world assets
-    num_solid_tiles = 0;
-    for (unsigned int i = 0; i < assets.size(); ++i) {
-        QVector<float> *vectorptr = &vertex_data;   // this is tech debt from when there were multiple vectors and i don't feel like fixing it atm
-        float ds = float(assets[i].w) / textures[assets[i].group]->width();
-        float dt = float(assets[i].h) / textures[assets[i].group]->height();
-        float t;
-
-        // for tiles, the t value is based on tileset
-        if (assets[i].type == 0 || assets[i].type == 1) {
-            t = assets[i].t * tileset;
-        }
-        else {
-            t = assets[i].t;
-        }
-
-        vectorptr->push_back(assets[i].s);
-        vectorptr->push_back(t);
-        vectorptr->push_back(assets[i].x);
-        vectorptr->push_back(assets[i].y);
-
-        vectorptr->push_back(assets[i].s + ds);
-        vectorptr->push_back(t);
-        vectorptr->push_back(assets[i].x + assets[i].w);
-        vectorptr->push_back(assets[i].y);
-
-        vectorptr->push_back(assets[i].s + ds);
-        vectorptr->push_back(t + dt);
-        vectorptr->push_back(assets[i].x + assets[i].w);
-        vectorptr->push_back(assets[i].y + assets[i].h);
-
-        vectorptr->push_back(assets[i].s);
-        vectorptr->push_back(t + dt);
-        vectorptr->push_back(assets[i].x);
-        vectorptr->push_back(assets[i].y + assets[i].h);
     }
 
     vertex_data.append(vertex_data_solid);
@@ -347,35 +347,35 @@ void WorldWidget::paintGL()
     ogl->glClear(GL_COLOR_BUFFER_BIT);
     //background
     textures["background"]->bind();
+
     // don't draw the background as "solid"
     program->setUniformValue("solid", false);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     //cursor + tiles
-    std::vector<AssetInstance>& assets_to_add = cursor_widget->getAssets();
-    for (int i = 1; i < num_cursor_tiles + 1; ++i) {
-        program->setUniformValue("solid", add_solid && assets_to_add[i-1].type == 0);
-        if (assets_to_add[i-1].group != last_group) {
-            last_group = assets_to_add[i-1].group;
-            textures[assets_to_add[i-1].group]->bind();
-        }
-        glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
-    }
+    for (unsigned int i = 0; i < assets.size(); ++i) {
+        program->setUniformValue("solid", assets[i].type == 1 && view_solid);
 
-    for (unsigned int i = num_cursor_tiles + 1; i < assets.size() + num_cursor_tiles + 1; ++i) {
-        int asset_index = i-1-num_cursor_tiles;
-        program->setUniformValue("solid", assets[asset_index].type == 1 && view_solid);
-
-        if (assets[asset_index].group != last_group) {
-            last_group = assets[asset_index].group;
-            textures[assets[asset_index].group]->bind();
+        if (assets[i].group != last_group) {
+            last_group = assets[i].group;
+            textures[assets[i].group]->bind();
         }
         // toggle solid visibility on for the solid tiles, which are always placed at the end of the buffer
-        if (assets.size() + num_cursor_tiles - i < num_solid_tiles && view_solid) {
+        if (assets.size() - i < num_solid_tiles && view_solid) {
             program->setUniformValue("solid", true);
         }
 
-        glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
+        glDrawArrays(GL_TRIANGLE_FAN, (i + 1) * 4, 4);
+    }
+
+    std::vector<AssetInstance>& assets_to_add = cursor_widget->getAssets();
+    for (int i = 0; i < assets_to_add.size(); ++i) {
+        program->setUniformValue("solid", add_solid && assets_to_add[i].type == 0);
+        if (assets_to_add[i].group != last_group) {
+            last_group = assets_to_add[i].group;
+            textures[assets_to_add[i].group]->bind();
+        }
+        glDrawArrays(GL_TRIANGLE_FAN, (i + 1 + assets.size()) * 4, 4);
     }
 
     colour_program->bind();

@@ -39,6 +39,7 @@ private:
     void updateScale(float newScale);
     void selectAsset(int x, int y);
 
+    QVector<float> vertex_data;
     Asset selection;
     std::string selected_group;
     CursorWidget *cursor_widget;

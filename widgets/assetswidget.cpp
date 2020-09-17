@@ -94,7 +94,7 @@ void AssetsWidget::addAssetsToBuffer(QVector<float>& buffer, std::string group_n
     float y = 0;
     float t;
     QOpenGLTexture* tex = textures[group_name];
-
+    float max_height = 0;
     for (auto asset : assets) {
         float ds = float(asset.w) / tex->width();
         float dt = float(asset.h) / tex->height();
@@ -127,22 +127,21 @@ void AssetsWidget::addAssetsToBuffer(QVector<float>& buffer, std::string group_n
         buffer.push_back(x);
         buffer.push_back(y + asset.h);
 
-        // FIXME: this can result in overlapping images. to fix this,
-        // we need to calculate the entire row at once and choose the max
-        // height as the row height.
+        if (asset.h > max_height) {
+            max_height = asset.h;
+        }
         x += asset.w;
         if (x + asset.w > width() / scale) {
             x = 0;
-            y += asset.h;
+            y += max_height;
+            max_height = 0;
         }
     }
 }
 
 void AssetsWidget::initBuffers()
 {
-    QVector<float> vertex_data;
-
-
+    vertex_data.clear();
     addAssetsToBuffer(vertex_data, selected_group);
 
     vbo.bind();
@@ -232,31 +231,25 @@ void AssetsWidget::mouseReleaseEvent(QMouseEvent *event) {
 void AssetsWidget::selectAsset(int x, int y) {
     x /= scale;
     y /= scale;
-    if (selected_group == "tiles") {
-        x += width() / scale * floor(y / 16.f);
-        y = int(y) % 16;
-    } else {
-        x += width() / scale * floor(y / textures[selected_group]->height());
-        y = int(y) % textures[selected_group]->height();
-    }
 
     std::vector<Asset> assets = editor_assets.get_assets(selected_group);
-    for (auto asset : assets) {
-        // i guess this method of deletion doesn't actually maintain order lol oops
-        float assetx = asset.s * editor_assets.get_image(asset.group).width();
-        float assety;
-        if (asset.type == 0 || asset.type == 1) {
-            assety = 0;
-        } else {
-            assety = asset.t * editor_assets.get_image(asset.group).height();
-        }
-        if (clickInRect(x, y, assetx, assety, asset.w, asset.h)) {
-            selection.s = asset.s;
-            selection.t = asset.t;
-            selection.w = asset.w;
-            selection.h = asset.h;
+    for (int i = 0; i < vertex_data.size(); i += 16) {
+        float assetx = vertex_data[i+2];
+        float assety = vertex_data[i+3];
+        float assetw = vertex_data[i+6] - vertex_data[i+2];
+        float asseth = vertex_data[i+11] - vertex_data[i+3];
+
+        if (clickInRect(x, y, assetx, assety, assetw, asseth)) {
+            std::cout << vertex_data.size() << std::endl;
+            std::cout << x << " : " << y << std::endl;
+            std::cout << assetx << " : " << assety << " : " << assetw << " : " << asseth << std::endl;
+            int asset_index = i / 16;
+            selection.s = assets[asset_index].s;
+            selection.t = assets[asset_index].t;
+            selection.w = assets[asset_index].w;
+            selection.h = assets[asset_index].h;
             selection.group = selected_group;
-            selection.type = asset.type;
+            selection.type = assets[asset_index].type;
             break;
         }
     }
