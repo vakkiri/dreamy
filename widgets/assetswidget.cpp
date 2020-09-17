@@ -240,9 +240,6 @@ void AssetsWidget::selectAsset(int x, int y) {
         float asseth = vertex_data[i+11] - vertex_data[i+3];
 
         if (clickInRect(x, y, assetx, assety, assetw, asseth)) {
-            std::cout << vertex_data.size() << std::endl;
-            std::cout << x << " : " << y << std::endl;
-            std::cout << assetx << " : " << assety << " : " << assetw << " : " << asseth << std::endl;
             int asset_index = i / 16;
             selection.s = assets[asset_index].s;
             selection.t = assets[asset_index].t;
