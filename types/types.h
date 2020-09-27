@@ -6,7 +6,9 @@
 
 enum EditMode {
     ADD_MODE,
-    PORTAL_MODE
+    PORTAL_MODE,
+    WATER_MODE,
+    NUM_MODES
 };
 
 struct Portal {
@@ -17,6 +19,13 @@ struct Portal {
     float destx;
     float desty;
     int destlevel;
+};
+
+struct Water {
+    float x;
+    float y;
+    float w;
+    float h;
 };
 
 struct TileInfo {

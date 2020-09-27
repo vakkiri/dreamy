@@ -81,6 +81,7 @@ WorldWidget::WorldWidget()
     view_solid = true;
     current_layer = 0;
     adding_portal = false;
+    adding_water = false;
     edit_mode = ADD_MODE;
     setMouseTracking(true);
 }
@@ -313,7 +314,16 @@ void WorldWidget::initBuffers()
         portal_vertex_data.push_back(p.x);
         portal_vertex_data.push_back(p.y + p.h);
     }
-
+    for (auto w : water) {
+        portal_vertex_data.push_back(w.x);
+        portal_vertex_data.push_back(w.y);
+        portal_vertex_data.push_back(w.x + w.w);
+        portal_vertex_data.push_back(w.y);
+        portal_vertex_data.push_back(w.x + w.w);
+        portal_vertex_data.push_back(w.y + w.h);
+        portal_vertex_data.push_back(w.x);
+        portal_vertex_data.push_back(w.y + w.h);
+    }
     colour_program->bind();
     colour_vbo.bind();
     colour_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
@@ -383,7 +393,10 @@ void WorldWidget::paintGL()
     for (unsigned int i = 0; i < portals.size(); ++i) {
         glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
     }
-
+    colour_program->setUniformValue("vcolor", 0.1f, 0.2f, 0.6f, 0.5f);
+    for (unsigned int i = 0; i < water.size(); ++i) {
+        glDrawArrays(GL_TRIANGLE_FAN, (i + portals.size()) * 4, 4);
+    }
     checkError("Drawing elements");
 }
 
@@ -430,8 +443,21 @@ void WorldWidget::mousePressEvent(QMouseEvent *event) {
         middle_click = true;
     } else if (edit_mode == PORTAL_MODE) {
         mousePressPortal(event);
+    } else if (edit_mode == WATER_MODE) {
+        mousePressWater(event);
     }
     event->accept();
+}
+
+void WorldWidget::mousePressWater(QMouseEvent *event) {
+    float x = event->x() / scale;
+    float y = event->y() / scale;
+    x -= tx;
+    y -= ty;
+    if (event->button() == Qt::LeftButton) {
+        portal_start = QPoint(x, y);
+        adding_water = true;
+    }
 }
 
 void WorldWidget::mouseReleasePortal(QMouseEvent *event) {
@@ -460,6 +486,39 @@ void WorldWidget::mouseReleasePortal(QMouseEvent *event) {
             if (clickInRect(x, y, portals[i].x, portals[i].y, portals[i].w, portals[i].h)) {
                 portals[i] = portals.back();
                 portals.pop_back();
+                updateSurface();
+                break;
+            }
+        }
+    }
+}
+
+void WorldWidget::mouseReleaseWater(QMouseEvent *event) {
+    float x = event->x() / scale;
+    float y = event->y() / scale;
+    x -= tx;
+    y -= ty;
+    if (event->button() == Qt::LeftButton) {
+        portal_end = QPoint(x, y);
+        float startx, starty, endx, endy;
+        startx = std::min(portal_start.x(), portal_end.x());
+        endx = std::max(portal_start.x(), portal_end.x());
+        starty = std::min(portal_start.y(), portal_end.y());
+        endy = std::max(portal_start.y(), portal_end.y());
+        float w = endx - startx;
+        float h = endy - starty;
+
+        PortalDialogue dialogue;
+        if (dialogue.exec() == QDialog::Accepted) {
+            std::cout << dialogue.targetx() << " : " << dialogue.targety() << std::endl;
+            water.push_back(Water{startx, starty, w, h});
+            updateSurface();
+        }
+    } else if (event->button() == Qt::RightButton) {
+        for (unsigned int i = 0; i < water.size(); ++i) {
+            if (clickInRect(x, y, water[i].x, water[i].y, water[i].w, water[i].h)) {
+                water[i] = water.back();
+                water.pop_back();
                 updateSurface();
                 break;
             }
@@ -517,12 +576,15 @@ void WorldWidget::mouseReleaseEvent(QMouseEvent *event) {
         mouseReleaseAdd(event);
     } else if (edit_mode == PORTAL_MODE) {
         mouseReleasePortal(event);
+    } else if (edit_mode == WATER_MODE) {
+        mouseReleaseWater(event);
     }
     if (event->button() == Qt::MiddleButton) {
         middle_click = false;
     }
 
-    adding_portal = false;  // make sure we unset this even if something weird happened and we weren't in portal mode
+    adding_portal = false;
+    adding_water = false;
 }
 
 void WorldWidget::scaleBy(float amt) {

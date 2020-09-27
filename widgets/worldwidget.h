@@ -56,6 +56,8 @@ public:
     void setEditMode(EditMode new_mode);
     void mousePressPortal(QMouseEvent *event);
     void mouseReleasePortal(QMouseEvent *event);
+    void mousePressWater(QMouseEvent *event);
+    void mouseReleaseWater(QMouseEvent *event);
     void mouseReleaseAdd(QMouseEvent *event);
     void setParentLayout(MainLayout *layout);
 
@@ -74,6 +76,7 @@ private:
     void scaleBy(float amt);
 
     std::vector<Portal> portals;
+    std::vector<Water> water;
 
     int snap;
 
@@ -111,6 +114,7 @@ private:
     QPoint portal_start;
     QPoint portal_end;
     bool adding_portal;
+    bool adding_water;
 
     bool middle_click;
 

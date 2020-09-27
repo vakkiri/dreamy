@@ -26,14 +26,15 @@ MainWindow::MainWindow(QWidget *parent)
     QToolBar *toolbar = new QToolBar();
     QIcon placementIcon = QIcon(QString("assets/icons/placement.png"));
     QIcon portalIcon = QIcon(QString("assets/icons/portal.png"));
+    QIcon waterIcon = QIcon(QString("assets/icons/water.png"));
     toolbar->addAction(placementIcon, QString("Objects"), this, &MainWindow::setAddMode);
     toolbar->addAction(portalIcon, QString("Portals"), this, &MainWindow::setPortalMode);
+    toolbar->addAction(waterIcon, QString("Water"), this, &MainWindow::setWaterMode);
 
     addToolBar(toolbar);
 
     // File path
-    cur_filename = "unnamed.lvl";
-    cur_filepath = "./";
+    cur_filepath = "./unnamed.lvl";
 
     // Actions
     new_action = new QAction(tr("&New"), this);
@@ -51,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
     save_action->setStatusTip(tr("Save current level with current filename"));
     connect(save_action, &QAction::triggered, this, &MainWindow::save);
 
-    saveas_action = new QAction(tr("S&ave"), this);
+    saveas_action = new QAction(tr("S&ave As"), this);
     saveas_action->setShortcut(QKeySequence::SaveAs);
     saveas_action->setStatusTip(tr("Save current level with a new filename"));
     connect(saveas_action, &QAction::triggered, this, &MainWindow::saveas);
@@ -77,6 +78,7 @@ void MainWindow::new_level() {
 
 void MainWindow::open() {
     QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Files(*.lvl)"));
+    cur_filepath = file_name.toStdString();
     std::ifstream file;
     file.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
     std::vector<char> buffer;
@@ -242,11 +244,12 @@ void MainWindow::saveFile(std::string path) {
 }
 
 void MainWindow::save() {
-    saveFile(cur_filepath + cur_filename);
+    saveFile(cur_filepath);
 }
 
 void MainWindow::saveas() {
-    QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Files(*.lvl)"));
+    QString file_name = QFileDialog::getSaveFileName(this, tr("Open File"), "", tr("Files(*.lvl)"));
+    cur_filepath = file_name.toStdString();
     saveFile(file_name.toStdString());
 }
 
@@ -256,4 +259,8 @@ void MainWindow::setAddMode() {
 
 void MainWindow::setPortalMode() {
     world->setEditMode(PORTAL_MODE);
+}
+
+void MainWindow::setWaterMode() {
+    world->setEditMode(WATER_MODE);
 }

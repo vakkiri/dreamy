@@ -37,7 +37,6 @@ private:
     QAction *saveas_action;
     QAction *open_action;
 
-    std::string cur_filename;
     std::string cur_filepath;
 
 private slots:
@@ -47,5 +46,7 @@ private slots:
     void new_level();
     void setPortalMode();
     void setAddMode();
+    void setWaterMode();
+
 };
 #endif // MAINWINDOW_H
