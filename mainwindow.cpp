@@ -184,7 +184,12 @@ void MainWindow::open() {
                 cur += sizeof(int16_t);
                 memcpy(&p, cur, sizeof(Portal));
                 world->addPortal(p);
-                std::cout << sizeof(Portal) << std::endl;
+                cur += sizeof(Portal);
+            } else if (val == 301) {
+                Water w;
+                cur += sizeof(int16_t);
+                memcpy(&w, cur, sizeof(Water));
+                world->addWater(w);
                 cur += sizeof(Portal);
             } else {
                 std::cout << "Unkown object type: " << val << std::endl;
@@ -234,6 +239,11 @@ void MainWindow::saveFile(std::string path) {
             int16_t type = 300;
             file.write((char*) &type, sizeof(int16_t));
             file.write((char*) &portal, sizeof(Portal));
+        }
+        for (auto water : world->getWater()) {
+            int16_t type = 301;
+            file.write((char*) &type, sizeof(int16_t));
+            file.write((char*) &water, sizeof(Water));
         }
         file.write((char*) &end_marker, sizeof(end_marker));
 

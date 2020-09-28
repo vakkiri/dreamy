@@ -663,6 +663,10 @@ std::vector<Portal>& WorldWidget::getPortals() {
     return portals;
 }
 
+std::vector<Water>& WorldWidget::getWater() {
+    return water;
+}
+
 void WorldWidget::clearAssets() {
     assets.clear();
 }
@@ -673,6 +677,10 @@ void WorldWidget::addAsset(AssetInstance asset) {
 
 void WorldWidget::addPortal(Portal portal) {
     portals.push_back(portal);
+}
+
+void WorldWidget::addWater(Water w) {
+    water.push_back(w);
 }
 
 void WorldWidget::setEditMode(EditMode new_mode) {

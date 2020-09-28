@@ -18,14 +18,14 @@ struct Portal {
     float h;
     float destx;
     float desty;
-    int destlevel;
+    int32_t destlevel;
 };
 
 struct Water {
-    float x;
-    float y;
-    float w;
-    float h;
+    int16_t x;
+    int16_t y;
+    int16_t w;
+    int16_t h;
 };
 
 struct TileInfo {

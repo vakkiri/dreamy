@@ -49,9 +49,11 @@ public:
     void setSnap(int snap);
     std::vector<AssetInstance>& getAssets();
     std::vector<Portal>& getPortals();
+    std::vector<Water>& getWater();
     void clearAssets();
     void addAsset(AssetInstance asset);
     void addPortal(Portal portal);
+    void addWater(Water w);
     void updateSurface();
     void setEditMode(EditMode new_mode);
     void mousePressPortal(QMouseEvent *event);
