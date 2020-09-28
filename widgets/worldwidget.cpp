@@ -381,7 +381,7 @@ void WorldWidget::paintGL()
     std::vector<AssetInstance>& assets_to_add = cursor_widget->getAssets();
     for (int i = 0; i < assets_to_add.size(); ++i) {
         program->setUniformValue("solid", add_solid && assets_to_add[i].type == 0);
-        if (assets_to_add[i].group != last_group) {
+        if (assets_to_add[i].group != last_group)   {
             last_group = assets_to_add[i].group;
             textures[assets_to_add[i].group]->bind();
         }
@@ -454,6 +454,9 @@ void WorldWidget::mousePressWater(QMouseEvent *event) {
     float y = event->y() / scale;
     x -= tx;
     y -= ty;
+    x = int(x) - (int(x) % int(snap));
+    y = int(y) - (int(y) % int(snap));
+
     if (event->button() == Qt::LeftButton) {
         portal_start = QPoint(x, y);
         adding_water = true;
@@ -498,6 +501,9 @@ void WorldWidget::mouseReleaseWater(QMouseEvent *event) {
     float y = event->y() / scale;
     x -= tx;
     y -= ty;
+    x = int(x) + (snap - (int(x) % int(snap)));
+    y = int(y) + (snap - (int(y) % int(snap)));
+
     if (event->button() == Qt::LeftButton) {
         portal_end = QPoint(x, y);
         float startx, starty, endx, endy;
@@ -508,12 +514,8 @@ void WorldWidget::mouseReleaseWater(QMouseEvent *event) {
         float w = endx - startx;
         float h = endy - starty;
 
-        PortalDialogue dialogue;
-        if (dialogue.exec() == QDialog::Accepted) {
-            std::cout << dialogue.targetx() << " : " << dialogue.targety() << std::endl;
-            water.push_back(Water{startx, starty, w, h});
-            updateSurface();
-        }
+        water.push_back(Water{startx, starty, w, h});
+        updateSurface();
     } else if (event->button() == Qt::RightButton) {
         for (unsigned int i = 0; i < water.size(); ++i) {
             if (clickInRect(x, y, water[i].x, water[i].y, water[i].w, water[i].h)) {
